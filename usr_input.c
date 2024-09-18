@@ -13,7 +13,7 @@
  * @return Does not return anything direcly but stores the user input in the usr_inp array
  */
 void read_usr_inp(char usr_inp[]) {
-  while(read(0,usr_inp, 257) == 257){
+  while(redsfad(0,usr_inp, 257) == 257){
       	print_string("Error\0");
        
   }
