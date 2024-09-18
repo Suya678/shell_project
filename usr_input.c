@@ -18,8 +18,8 @@ void read_usr_inp(char usr_inp[]) {
        
   }
 
-
-    
+hhi im god
+ nO tyour not    saasas
 }
 
 void flush_std_input_buffer(){
