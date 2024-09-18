@@ -18,9 +18,21 @@ void read_usr_inp(char usr_inp[]) {
        
   }
 
-
-
+hhi im god
+ nO tyour not    saasas
 }
+
+
+/**
+ * @brief The funcition flushes the standard input buffer
+ *
+ * This function will go through each element in the standard buffer input array
+ * and change each element to a null value
+ *
+ * @param user_inp The buffer to store the user input
+ *
+ * @return Does not return anything direcly but stores the user input in the usr_inp array
+ */
 
 void flush_std_input_buffer(){
 
