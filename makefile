@@ -1,14 +1,11 @@
-jdshell: jdshell.o usr_input.o
-	gcc jdshell.o usr_input.o -o jdshell
+jdshell: src/jdshell.o src/usr_input.o
+	gcc src/jdshell.o src/usr_input.o -o jdshell
 
-jdshell.o: jdshell.c
-	gcc -c jdshell.c
+src/jdshell.o: src/jdshell.c ./headers/usr_input.h
+	gcc -c src/jdshell.c -I./headers -o src/jdshell.o
 
-usr_input.o: usr_input.c
-	gcc -c usr_input.c usr_input.h
-
+src/usr_input.o: src/usr_input.c ./headers/usr_input.h 
+	gcc -c src/usr_input.c -I./headers -o src/usr_input.o
 clean:
-	rm -f jdshell jdshell.o
+	rm -f jdshell src/*.o
 
-object_clean:
-	rm -f *.o

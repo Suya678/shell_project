@@ -1,6 +1,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#ifndef USR_INP
+#define USR_INP
+
 
 #define FD_STD_INP 0
 #define FD_STD_OUT 1
@@ -15,3 +18,5 @@ void flush_input_string(char str[]);
 void flush_std_input_buffer();
 void print_string(char *to_print);
 bool string_compare(char *str1, char *str2, int num_chars);  
+
+#endif
