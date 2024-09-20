@@ -102,9 +102,9 @@ void print_string(char *to_print ) {
  *  @brief Compares two strings up to a specified number of characters or until the end.
  *
  *
- * Compares `str1` and `str2` character by character. If `num_to_compare` is bigger than 0, 
- * it compares up to that many characters. If `num_to_compare` is zero or negative,
- * it compares until the end of either string.
+ * Compares str1 and str2 character by character. They must be null termiated.
+ * If num_to_compare is bigger than 0, it compares up to that many characters.
+ * If num_to_compare is zero or negative, it compares until the end of either string.
  *
  * @param str1 pointer to the first string.
  * @param str2 pointer to the second string.
@@ -116,6 +116,7 @@ void print_string(char *to_print ) {
 bool string_compare(char *str1, char *str2, int num_to_compare){
 
   bool is_equal = TRUE;
+  
   if(num_to_compare > 0) {
     while(num_to_compare > 0 && is_equal) {
       is_equal = (*str1 == *str2);
