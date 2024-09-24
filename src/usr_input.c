@@ -7,63 +7,76 @@
  *
  * This function will read user input from the standard input buffer.
  * If the user enters more than 256 characters, it will print an error
- * message to the standard output and re-prompt the user. The string will
- * be null terminated and wuill be less than 257 characters
+ * message to the standard output and re-prompt the user. The user
+ * will also be re-prompted if they enter just a new line. The input string will
+ * be null terminated and will be at most 256 characters including the null terminator.
  *
- * @param user_inp The buffer to store the user input. The fucntion assumes that the string is 257 bytes
+ * @param user_inp The buffer to store the user input. 
+ *                 The function assumes that the string has a length of 256 chars.
  *
  * @return Does not return anything direcly but stores the user input in the usr_inp array
  */
 void read_usr_inp(char usr_inp[]) {
-  int count = 0;
+  ssize_t count = 0;
   char shell_prompt[] = "jdshell$$: ";
   char error_msg[] ="Error: The input was longer than 256 characters\n";
-
-  print_string(shell_prompt);
-  count = read(FD_STD_INP,usr_inp, MAX_SIZE);
-
-  while(count == MAX_SIZE ){
-    print_string(error_msg);
-    flush_std_input_buffer();
+  bool valid_input = FALSE;
+  
+  while(valid_input == FALSE) {
+    
     print_string(shell_prompt);
-  
-    flush_input_string(usr_inp);
-    count = read(FD_STD_INP,usr_inp, MAX_SIZE);
+    count = read(FD_STD_INP, usr_inp, MAX_SIZE);
+
+    /*Exit if read failed*/
+    if (count == -1) {
+      write(FD_STD_ERR, "Error reading input in read_usr_inp function\n", 46);
+      _exit(1); 
+    }
+    
+    
+    if(usr_inp[count -1] != '\n') {  /*User entered more than 256 characters*/
+      print_string(error_msg);
+      flush_std_input_buffer();
+    }else if(count >1) {             /*Check if user did not enter an empty line*/
+      valid_input = TRUE;
+    }
+    
   }
-
   
-  usr_inp[count] = '\0';
- 
-
+  usr_inp[count - 1] = '\0';
+  
+  
 }
 
 
 /**
- * @brief Flushes the standard input buffer.
+ * @brief Helper function to read_usr_input for flushing the standard input buffer.
  *
  * This function clears any remaining data in the standard input buffer by
- * reading and discarding up to 1000 characters. It sets the file descriptor
- * for standard input to non-blocking mode first so the read function does
- * not block until the user presses enter. THe original flags are restored
- * afterwards
+ * reading and discarding characters until a newline is encountered.
  *
- * @return This function does not return any value. 
- *
- * @references https://www.linuxtoday.com/blog/blocking-and-non-blocking-i-0/
- *             Used it for learning about fcntl and how to switch a fd to non blockeing
+ * @return This function does not return any value.
  */
 void flush_std_input_buffer(){
   
-  int buff_size = 1000;
+  size_t  buff_size = 100;
   char temp_buff[buff_size];
-  int previous_flag = fcntl(FD_STD_INP,F_GETFL);
+  bool input_flushed = FALSE;
+  ssize_t count = 0;
 
-  /*Only turns on the non blocking flag*/
-  fcntl(FD_STD_INP,F_SETFL, previous_flag | O_NONBLOCK);
-  
-  while(read(FD_STD_INP,temp_buff,buff_size) >0);
+  while(input_flushed == FALSE) {  
+    count = read(FD_STD_INP, temp_buff, buff_size);
 
-  fcntl(FD_STD_INP,F_SETFL, previous_flag);
+    /*Exit if read failed*/
+    if (count == -1) {
+      write(FD_STD_ERR, "Error reading input in read_usr_inp function\n", 46);
+      _exit(1);
+    }
+
+    if(temp_buff[count -1] == '\n') {
+      input_flushed = TRUE;
+    }
+  }
   
 }
 

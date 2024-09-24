@@ -7,7 +7,8 @@
 
 #define FD_STD_INP 0
 #define FD_STD_OUT 1
-#define MAX_SIZE 257
+#define MAX_SIZE 256
+#define FD_STD_ERR 2
 #define FALSE 0
 #define TRUE 1
 

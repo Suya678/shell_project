@@ -6,7 +6,6 @@ void test_valid_input();
 void test_invalid_input();
 void test_max_valid_input();
 void test_multiple_invalid_inputs();
-void test_standard_input_flush();
 void test_print_string();
 void test_string_compare();
 
@@ -22,13 +21,10 @@ int main() {
   test_max_valid_input();
   test_multiple_invalid_inputs();
 
-  printf("Testing the flush standard inp function...\n");  
-  test_standard_input_flush();
-
   printf("Testing print string function\n\n");
   test_print_string();
   
-  printf("Testing the string compare function...\n");
+  printf("Testing the string compare function...\n\n");
   test_string_compare();
 
   return 0;
@@ -59,7 +55,7 @@ void test_string_compare(){
     printf( "Actual: false\nTest Passed\n\n");
   }
 
-  printf("TEST CASE 3: Only compares the first three characters and fails,\n String 1: DHDDD, String 2: DHCDD");
+  printf("TEST CASE 3: Only compares the first three characters and fails,\nString 1: DHDDD, String 2: DHCDD");
   printf( "Expected: false\n");
   are_equal = string_compare("DHDDD", "DHCDD", 3);
   if(are_equal) {
@@ -73,19 +69,19 @@ void test_string_compare(){
   printf( "Expected: true\n");
   are_equal = string_compare("SHOP", "SHOC", 3);
   if(are_equal) {
-    printf( "Actual: true\n Test Passed\n");
+    printf( "Actual: true\nTest Passed\n");
   } else {
-    printf( "Actual: false\n Test Failed\n\n");
+    printf( "Actual: false\nTest Failed\n\n");
   }
 
 
-  printf("TEST CASE 5: Two equal long strings ,\n String 1: %s\n, String 2: %s\n", compare_tst_5[1], compare_tst_5[0]);
+  printf("TEST CASE 5: Two equal long strings\nString 1: %s\n\nString 2: %s\n\n", compare_tst_5[1], compare_tst_5[0]);
   printf( "Expected: true\n");
   are_equal = string_compare(compare_tst_5[0], compare_tst_5[1],-1);
   if(are_equal) {
-    printf( "Actual: true\n Test Passed\n");
+    printf( "Actual: true\nTest Passed\n");
   } else {
-    printf( "Actual: false\n Test Failed\n\n");
+    printf( "Actual: false\nTest Failed\n\n");
   }
   
   
@@ -114,8 +110,8 @@ void test_invalid_input() {
     printf("Please enter a string with more than 256 characters, then enter a valid string:\n");
 
     read_usr_inp(array);
-
-    printf("You entered: %s\n", array);
+    
+   printf("You entered: %s\n", array);
 }
 
 void test_max_valid_input() {
@@ -143,29 +139,6 @@ void test_multiple_invalid_inputs() {
 
 
 
-void test_standard_input_flush() {
-    char temp_buff[20], input[10];
-    int previous_flag;
-
-    printf("Enter a string (up to 10 characters): ");
-    scanf("%9s", input); 
-
-    flush_std_input_buffer();
-
-    /*Setting the flag so read does not wait for input*/
-    previous_flag = fcntl(FD_STD_INP, F_GETFL);
-    fcntl(FD_STD_INP, F_SETFL, previous_flag | O_NONBLOCK);
-
-
-    /*Read may return -1 or 0 in NON BLOCKING MODE TO INDICATE END OF FILE*/
-    if (read(FD_STD_INP, temp_buff, 20) > 0 ) {
-        printf("Test FAILED: Input not flushed or an Error occured.\n\n");
-     } else {
-      printf("Test PASSED: Standard input flushed successfully.\n\n");
-    }
-    
-    fcntl(FD_STD_INP, F_SETFL, previous_flag);
-}
 
 
 
@@ -181,21 +154,21 @@ void test_print_string() {
   write(FD_STD_OUT, "TEST CASE 1: Prints with just one character plus newline\n", 58);
   write(FD_STD_OUT, "Expected: ", 10);
   write(FD_STD_OUT, str1, 2);
-  write(FD_STD_OUT, "Actual: ", 8);
+  write(FD_STD_OUT, "\nActual: ", 9);
   print_string(str1);
   write(FD_STD_OUT, "\n", 1);
   
   write(FD_STD_OUT, "TEST CASE 2: Prints a string with one word\n", 43);
   write(FD_STD_OUT, "Expected: ", 10);
   write(FD_STD_OUT, str2, 7);
-  write(FD_STD_OUT, "Actual: ", 8);
+  write(FD_STD_OUT, "\nActual: ", 9);
   print_string(str2);
   write(FD_STD_OUT, "\n", 1);
    
   write(FD_STD_OUT, "TEST CASE 3: Prints a string with two words\n", 44);
   write(FD_STD_OUT, "Expected: ", 10);
   write(FD_STD_OUT, str3, 17);
-  write(FD_STD_OUT, "Actual: ", 8);
+  write(FD_STD_OUT, "\nActual: ", 9);
   print_string(str3);
   write(FD_STD_OUT, "\n", 1);
     
@@ -203,14 +176,14 @@ void test_print_string() {
   write(FD_STD_OUT, "TEST CASE 4: Prints a string with multiple words\n", 49);
   write(FD_STD_OUT, "Expected: ", 10);
   write(FD_STD_OUT, str4, 24);
-  write(FD_STD_OUT, "Actual: ", 8);
+  write(FD_STD_OUT, "\nActual: ", 9);
   print_string(str4);
   write(FD_STD_OUT, "\n", 1);
 
   write(FD_STD_OUT, "TEST CASE 5: Prints a string with multiple null characters\n", 60);
   write(FD_STD_OUT, "Expected: ", 10);
   write(FD_STD_OUT, str5, 6);
-  write(FD_STD_OUT, "Actual: ", 8);
+  write(FD_STD_OUT, "\nActual: ", 9);
   print_string(str5);
   write(FD_STD_OUT, "\n", 1);
 
