@@ -1,10 +1,10 @@
 TEST_USR_INP: tst_usr_inp.o usr_input.o
 	gcc tst_usr_inp.o usr_input.o -o TEST_USR_INP
 
-tst_usr_inp.o: tst_usr_inp.c ../../headers/usr_input.h
+tst_usr_inp.o: tst_usr_inp.c ../../headers/*
 	gcc -c tst_usr_inp.c -I../../headers -o tst_usr_inp.o
 
-usr_input.o: ../../src/usr_input.c ../../headers/usr_input.h 
+usr_input.o: ../../src/usr_input.c ../../headers/* 
 	gcc -c ../../src/usr_input.c -I../../headers -o usr_input.o
 clean:
 	rm -f TEST_USR_INP src/*.o

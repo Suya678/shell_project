@@ -1,11 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
-#include "usr_input.h"
+#include "our_string.h"
 
-void test_valid_input();
-void test_invalid_input();
-void test_max_valid_input();
-void test_multiple_invalid_inputs();
 void test_print_string();
 void test_string_compare();
 
@@ -13,14 +9,8 @@ void test_string_compare();
 
 int main() {
   
-  printf("TESTING READ_USR_INP MODULE\n");
-  printf("Testing the read_usr_inp function...\n");
+  printf("TESTING OUR_STRING MODULE\n");
   
-  test_valid_input();
-  test_invalid_input();
-  test_max_valid_input();
-  test_multiple_invalid_inputs();
-
   printf("Testing print string function\n\n");
   test_print_string();
   
@@ -88,54 +78,6 @@ void test_string_compare(){
 
 }
 
-
-
-
-void test_valid_input() {
-    char array[256];
-
-    printf("CASE 1: Testing if valid input is accepted.\n");
-    printf("Please enter a string with less than 256 characters:\n");
-
-    read_usr_inp(array);
-    
-    printf("You entered: %s\n", array);
-}
-
-
-void test_invalid_input() {
-    char array[256];
-
-    printf("CASE 2: Testing if invalid input is rejected.\n");
-    printf("Please enter a string with more than 256 characters, then enter a valid string:\n");
-
-    read_usr_inp(array);
-    
-   printf("You entered: %s\n", array);
-}
-
-void test_max_valid_input() {
-    char array[257]; 
-
-    printf("CASE 3: Testing maximum valid input length.\n");
-    printf("Please enter a string with exactly 256 characters:\n The string should be accepted without any errors \n");
-
-    read_usr_inp(array);
-
-    printf("You entered: %s\n", array);
-
-}
-
-void test_multiple_invalid_inputs() {
-    char array[256];
-
-    printf("CASE 4: Testing rejection of multiple invalid inputs.\n");
-    printf("Please enter strings longer than 256 and then enter string shorter than that to end this test case:\n");
-
-    read_usr_inp(array);
-
-    printf("You entered: %s\n", array);
-}
 
 
 

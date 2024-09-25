@@ -1,16 +1,19 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-#include "usr_input.h"
-
+#include "cmd_handler.h"
+#include "our_string.h"
+#include <stdio.h>
 int main(char argc, char *argv[]) {
-  char usr_inp[MAX_SIZE];
-
-  read_usr_inp(usr_inp);
-
-  while(string_compare(usr_inp, "exit", 4) != TRUE){
-      read_usr_inp(usr_inp);
-  }
+  Command command;
+  int index = 0;
+  do {
+    get_command(&command);
+    while(command.argv[index] != NULL) {
+	printf("%s\n", command.argv[index++]);
+      }
+    index = 0;
+  }while(string_compare(command.usr_input, "exit", 4) != TRUE);
 
 
   return 0;
