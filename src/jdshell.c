@@ -6,17 +6,14 @@
 #include <stdio.h>
 int main(char argc, char *argv[]) {
   Command command;
-  int index = 0;
-  do {
-    get_command(&command);
-    /*    while(command.argv[index] != NULL) {
-	printf("%s\n", command.argv[index++]);
-      }
-    index = 0;
-    */
-    execve(command.argv[0], command.argv, NULL);
-  }while(string_compare(command.usr_input, "exit", 4) != TRUE);
+  get_command(&command);
 
-
+  while(string_compare(command.argv[0], "exit", 0) == FALSE)
+    {
+      check_for_background_processing(&command);
+      run_command(&command);
+      get_command(&command);
+    }
+  
   return 0;
 }

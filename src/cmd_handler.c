@@ -10,10 +10,11 @@
  * will also be re-prompted if they enter just a new line. The input string will
  * be null terminated and will be at most 256 characters including the null terminator.
  *
- * @param user_inp The buffer to store the user input. 
- *                 The function assumes that the string has a length of 256 chars.
+ * @param Command *command structure containing the buffer to holding users input 
+ *                 The function assumes that the buffer has a length of 256 chars.
  *
- * @return Does not return anything direcly but stores the user input in the usr_inp array
+ * @return Does not return anything direcly but stores the user input in the user_input
+ * array in the command structure.
  */
 void get_command(Command *command) {
   ssize_t count = 0;
@@ -46,6 +47,45 @@ void get_command(Command *command) {
 
   string_tokenizer(command->usr_input,command->argv,&(command->argc));
   
+}
+
+/**
+ * @brief The funcition runs a command
+ *
+ * This function will read user input from the standard input buffer.
+ * If the user enters more than 256 characters, it will print an error
+ * message to the standard output and re-prompt the user. The user
+ * will also be re-prompted if they enter just a new line. The input string will
+ * be null terminated and will be at most 256 characters including the null terminator.
+ *
+ * @param Command *command structure containing the buffer to holding users input
+ *                 The function assumes that the buffer has a length of 256 chars.
+ *
+ * @return Does not return anything direcly but stores the user input in the user_input
+ * array in the command structure.
+ */
+void run_command(Command *command) {
+  pid_t pid;
+  int status;
+
+  pid = fork();
+  
+  if(pid == 0)
+  {
+    execve(command->argv[0], command->argv, NULL);
+    write(FD_STD_OUT,"ERROR: COMMAND NOT FOUND OR COULD NOT BE EXECUTED \n", 52);
+    _exit(1);
+    
+  } else if(pid == -1){
+    write(FD_STD_OUT, "cannot create process\n", 23);
+    return;
+  }
+
+  if(command->process_in_background == FALSE){
+    waitpid(pid, &status, 0);
+  }
+
+
 }
 
 
@@ -175,5 +215,19 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
     }
   }
   tokens[*num_tokens] = NULL; 
+  
+}
+
+
+void check_for_background_processing(Command *command){
+  unsigned int num_tokens = command->argc;
+  command->process_in_background = FALSE;
+  
+
+  if(string_compare(command->argv[num_tokens - 1],"&",0) == TRUE) {
+      command->argv[num_tokens-1] = NULL;
+      command->process_in_background = TRUE;
+    }
+    
   
 }

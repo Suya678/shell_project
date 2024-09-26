@@ -6,7 +6,9 @@ void test_valid_input();
 void test_invalid_input();
 void test_max_valid_input();
 void test_multiple_invalid_inputs();
-
+void test_string_tokenizer_1_tok();
+void test_string_tokenizer_max_tokens();
+void test_string_tokenizer_whitespacess(); 
 
 
 int main() {
@@ -19,6 +21,10 @@ int main() {
   test_max_valid_input();
   test_multiple_invalid_inputs();
 
+  printf("TESTING STRING TOKENIZER FUNCTION\n");
+  test_string_tokenizer_1_tok();
+  test_string_tokenizer_max_tokens();
+  test_string_tokenizer_whitespacess();
   return 0;
 }
 
@@ -75,6 +81,39 @@ void test_multiple_invalid_inputs() {
     print_each_token(&command);
 }
 
+void test_string_tokenizer_1_tok() {
+    Command command;
+
+    printf("CASE 1: Testing with just one tokens.\n");
+    printf("Please enter only one token:\n");
+    get_command(&command);
+
+    printf("You entered(each token): ");
+    print_each_token(&command);
+}
+
+
+void test_string_tokenizer_max_tokens() {
+    Command command;
+
+    printf("CASE 2: Testing with max  tokens.\n");
+    printf("Please enter a string containg 128 spaces, containing 128 characters followed by the whitespaces:\n");
+    get_command(&command);
+
+    printf("You entered(each token): ");
+    print_each_token(&command);
+}
+
+void test_string_tokenizer_whitespacess() {
+    Command command;
+
+    printf("CASE 3: Testing with multiple leading white spaces before a character.\n");
+    printf("Please enter a string with multiple white spaces before the first character and between other tokens:\n");
+    get_command(&command);
+
+    printf("You entered(each token): ");
+    print_each_token(&command);
+}
 
 
  
