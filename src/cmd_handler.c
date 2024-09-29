@@ -9,9 +9,12 @@
  * message to the standard output and re-prompt the user. The user
  * will also be re-prompted if they enter just a new line. The input string will
  * be null terminated and will be at most 256 characters including the null terminator.
+ * It will be stored in the command strucutre. The function will also tokenize the
+ * the string via a helper function. It will also set the background processing flag
+ * via a helper fucniton
  *
  * @param Command *command structure containing the buffer to holding users input 
- *                 The function assumes that the buffer has a length of 256 chars.
+ *                 The function assumes that the inpu buffer has a length of 256 characters.
  *
  * @return Does not return anything direcly but stores the user input in the user_input
  * array in the command structure.
@@ -47,22 +50,21 @@ void get_command(Command *command) {
 
   string_tokenizer(command->usr_input,command->argv,&(command->argc));
   
+  check_for_background_processing(command);
+  
 }
 
+
 /**
- * @brief The funcition runs a command
+ * @brief The funcition will run a command from the command strucuture
  *
- * This function will read user input from the standard input buffer.
- * If the user enters more than 256 characters, it will print an error
- * message to the standard output and re-prompt the user. The user
- * will also be re-prompted if they enter just a new line. The input string will
- * be null terminated and will be at most 256 characters including the null terminator.
+ * This function will first fork a child process. The child process will then run the
+ * commadn in the commadn structure.Depending on the background_processing flag, the 
+ * parent process will decide if it needs to wait for the child to exit before continuing.
  *
- * @param Command *command structure containing the buffer to holding users input
- *                 The function assumes that the buffer has a length of 256 chars.
+ * @param Command *command structure containing the command attributes 
  *
- * @return Does not return anything direcly but stores the user input in the user_input
- * array in the command structure.
+ * @return Does not return anything
  */
 void run_command(Command *command) {
   pid_t pid;
@@ -77,7 +79,7 @@ void run_command(Command *command) {
     _exit(1);
     
   } else if(pid == -1){
-    write(FD_STD_OUT, "cannot create process\n", 23);
+    write(FD_STD_OUT, "Fork failed in run_command\n", 23);
     return;
   }
 
@@ -87,6 +89,8 @@ void run_command(Command *command) {
 
 
 }
+
+
 
 
 /**
@@ -119,6 +123,10 @@ void flush_std_input_buffer(){
   }
   
 }
+
+
+
+
 
 /**
  * @brief Flushes the contents of a string buffer.
@@ -219,9 +227,22 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
 }
 
 
+
+/**
+ * @brief The funcition checks if the user wants the command to be ran in background
+ *
+ * This function will check if the last valid token enetered by thr user was an "&".
+ * If so, it sets the process_in_background flag to TRUE otherwise it will remain
+ * FALSE.
+ * @param Command *command structure containing the command attributes including the
+ *                the flag to indcate background_processing
+ *
+ * @return Does not return anything direcly but modifies the process_in_background
+ *         flag in the command structure
+ */
 void check_for_background_processing(Command *command){
   unsigned int num_tokens = command->argc;
-  command->process_in_background = FALSE;
+  command->process_in_background = FALSE; /*Needs to reset every time*/
   
 
   if(string_compare(command->argv[num_tokens - 1],"&",0) == TRUE) {
