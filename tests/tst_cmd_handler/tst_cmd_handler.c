@@ -12,13 +12,16 @@ void test_string_tokenizer_whitespacess();
 void test_run_valid_command();
 void test_run_invalid_command();
 void test_fork_failure();
+void test_background_processing();
 
 
 int main() {
-  
+    
   printf("TESTING CMD HANDLER MODULE\n");
-  printf("Testing the get command function...\n");
-  
+  printf("Testing the get command function\n");
+  printf("Please enter to continue...\n");
+  getchar();
+
   test_valid_input();
   printf("\n");
   test_invalid_input();
@@ -27,8 +30,11 @@ int main() {
   printf("\n");
   test_multiple_invalid_inputs();
   printf("\n\n\n");
+ 
+  printf("\n\nTESTING STRING TOKENIZER FUNCTION\n");
+  printf("Please enter to continue...\n\n");
+  getchar();
 
-  printf("TESTING STRING TOKENIZER FUNCTION\n");
   test_string_tokenizer_1_tok();
   printf("\n");
   test_string_tokenizer_max_tokens();
@@ -45,6 +51,12 @@ int main() {
   printf("\n");
   test_fork_failure();
   printf("\n\n\n");
+
+
+  printf("\n\nTESTING BACKGROUND PROCESSING\n");
+  printf("Please enter to continue...\n\n");
+  getchar();
+  test_background_processing();
 
   return 0;
 }
@@ -170,7 +182,22 @@ void test_fork_failure(){
   printf("Otherwise fork created successfully and output is as expected\n");
 }
 
+void test_background_processing(){
 
+  Command command;
+
+  printf("Enter a sleep command without '&' (e.g., \"/bin/sleep 10\")\n");
+  printf("This command will block the terminal.\n");
+  get_command(&command);
+  run_command(&command);
+  
+  printf("Enter a sleep command followed by '&' (e.g., \"/bin/sleep 10 &\")\n");
+  printf("The command line should return immediately.\n");
+  get_command(&command);
+  run_command(&command);
+
+
+}
  
 
 
