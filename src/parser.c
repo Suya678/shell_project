@@ -1,4 +1,4 @@
-#include "cmd_handler.h"
+#include "parser.h"
 
 
 /**
@@ -19,7 +19,7 @@
  * @return Does not return anything direcly but stores the user input in the user_input
  * array in the command structure.
  */
-void get_command(Command *command) {
+void get_usr_input(USR_INP *usr_inp) {
   ssize_t count = 0;
   char shell_prompt[] = "jdshell$$: ";
   char error_msg[] ="Error: The input was longer than 256 characters\n";
@@ -28,7 +28,7 @@ void get_command(Command *command) {
   while(valid_input == FALSE) {
     
     print_string(shell_prompt);
-    count = read(FD_STD_INP, command->usr_input, MAX_SIZE);
+    count = read(FD_STD_INP, usr_inp->usr_input, MAX_SIZE);
 
     /*Exit if read failed*/
     if (count == -1) {
@@ -37,60 +37,21 @@ void get_command(Command *command) {
     }
     
     
-    if(command->usr_input[count -1] != '\n') {         /*User entered more than 256 characters*/
+    if(usr_inp->usr_input[count -1] != '\n') {         /*User entered more than 256 characters*/
       print_string(error_msg);
       flush_std_input_buffer();
-    }else if(!is_string_empty(command->usr_input)) {    /*Check if user did not enter an empty line*/
+    }else if(!is_string_empty(usr_inp->usr_input)) {    /*Check if user did not enter an empty line*/
       valid_input = TRUE;
     }
     
   }
   
-  command->usr_input[count - 1] = '\0';
+  usr_inp->usr_input[count - 1] = '\0';
 
-  string_tokenizer(command->usr_input,command->argv,&(command->argc));
+  string_tokenizer(usr_inp->usr_input,usr_inp->argv,&(usr_inp->num_tokens));
   
-  check_for_background_processing(command);
-  
-}
-
-
-/**
- * @brief The funcition will run a command from the command strucuture
- *
- * This function will first fork a child process. The child process will then run the
- * commadn in the commadn structure.Depending on the background_processing flag, the 
- * parent process will decide if it needs to wait for the child to exit before continuing.
- *
- * @param Command *command structure containing the command attributes 
- *
- * @return Does not return anything
- */
-void run_command(Command *command) {
-  pid_t pid;
-  int status;
-
-  pid = fork();
-  
-  if(pid == 0)
-  {
-    execve(command->argv[0], command->argv, NULL);
-    write(FD_STD_OUT,"ERROR: COMMAND NOT FOUND OR COULD NOT BE EXECUTED \n", 52);
-    _exit(1);
-    
-  } else if(pid == -1){
-    write(FD_STD_OUT, "Fork failed in run_command\n", 23);
-    return;
-  }
-
-  if(command->process_in_background == FALSE){
-    waitpid(pid, &status, 0);
-  }
-
 
 }
-
-
 
 
 /**
@@ -139,7 +100,7 @@ void flush_std_input_buffer(){
 void flush_input_string(char str[]){
 
   for(int i = 0; str[i] != '\0'; i++) {
-  str[0] = '\0';
+    str[0] = '\0';
   }
 }
 
@@ -227,28 +188,3 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
 }
 
 
-
-/**
- * @brief The funcition checks if the user wants the command to be ran in background
- *
- * This function will check if the last valid token enetered by thr user was an "&".
- * If so, it sets the process_in_background flag to TRUE otherwise it will remain
- * FALSE.
- * @param Command *command structure containing the command attributes including the
- *                the flag to indcate background_processing
- *
- * @return Does not return anything direcly but modifies the process_in_background
- *         flag in the command structure
- */
-void check_for_background_processing(Command *command){
-  unsigned int num_tokens = command->argc;
-  command->process_in_background = FALSE; /*Needs to reset every time*/
-  
-
-  if(string_compare(command->argv[num_tokens - 1],"&",0) == TRUE) {
-      command->argv[num_tokens-1] = NULL;
-      command->process_in_background = TRUE;
-    }
-    
-  
-}

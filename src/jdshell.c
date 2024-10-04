@@ -1,20 +1,23 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-#include "cmd_handler.h"
+#include "parser.h"
+#include "cmd_runner.h"
 #include "our_string.h"
 #include <stdio.h>
 
 
-int main(char argc, char *argv[]) {
-  Command command;
-  get_command(&command);
+int main(char argc, char *argv[], char *envp[]) {
+  USR_INP usr_inp;
+  unsigned int num = 0;
+  get_usr_input(&usr_inp);
 
-  while(string_compare(command.argv[0], "exit", 0) == FALSE)
-    {
-      run_command(&command);
-      get_command(&command);
-    }
-  
+
+
+  while(num < usr_inp.num_tokens){
+    printf("%s\n",usr_inp.argv[num]);
+    num++;
+  }
+
   return 0;
 }
