@@ -70,4 +70,36 @@ void print_string(char *to_print);
 bool string_compare(char *str1, char *str2, int num_chars);  
 bool is_string_empty(char string[]);
 void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_tokens);
+
+
+
+
+
+
+bool validate_and_parse_job(JOB *job);
+
+void state_reading_argument(JOB *job, bool *valid_input, int *token_counter);
+
+
+
+void state_encountered_pipe(JOB *job, bool *valid_input);
+
+void state_encountered_ampersand_sign(JOB *job, bool *valid_input);
+
+void state_encountered_outfile_sign(JOB *job, bool *valid_input);
+
+void state_encountered_infile_sign(JOB *job, bool *valid_input);
+
+
+
+void input_incorrect(JOB *job, bool *valid_input);
+
+
+void state_input_valid(JOB *job, bool *valid_input);
+
+
+
+void state_input_valid(JOB *job, bool *valid_input);
+
+
 #endif

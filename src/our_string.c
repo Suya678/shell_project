@@ -1,6 +1,6 @@
 #include "our_string.h"
 
-
+#include "stdio.h"
 /**
  * @brief Prints a null terminated string.
  *
@@ -39,7 +39,7 @@ void print_string(char *to_print ) {
 bool string_compare(char *str1, char *str2, int num_to_compare){
 
   bool is_equal = TRUE;
-  
+
   if(num_to_compare > 0) {
     while(num_to_compare > 0 && is_equal) {
       is_equal = (*str1 == *str2);
@@ -54,8 +54,9 @@ bool string_compare(char *str1, char *str2, int num_to_compare){
       str1++;
       str2++;
     }
-    is_equal = *str1 == *str2;
-
+    if(is_equal ==TRUE){   /*making sure both strings have ended*/
+      is_equal = (*str1 == *str2);
+    }
   }
 
   return is_equal;

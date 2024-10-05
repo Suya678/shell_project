@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "stdio.h"
 
 
 /**
@@ -186,5 +187,116 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
   tokens[*num_tokens] = NULL; 
   
 }
+
+
+
+
+bool validate_and_parse_job(JOB *job) {
+  
+  bool valid_input = TRUE;
+  job->infile_path = NULL;        /* NULL for no output redirection     */
+  job->outfile_path = NULL;           /* NULL for no input redirection      */
+  job->background = FALSE;
+  int token_counter = 0;
+  
+  printf("%d\n", job->usr_input.num_tokens);
+
+  /*We are guarnteed at least one token and it must start with an argumnet*/
+  if(string_compare(job->usr_input.argv[token_counter],"&", 0)  ||
+    string_compare(job->usr_input.argv[token_counter],">", 0)   ||
+    string_compare(job->usr_input.argv[token_counter],"<", 0)   ||
+    string_compare(job->usr_input.argv[token_counter],"|", 0)  ) {
+    printf("here\n");
+    valid_input = FALSE;
+  }
+  state_reading_argument(job, &valid_input, &token_counter);
+
+  return valid_input;
+
+}
+
+
+
+void state_reading_argument(JOB *job, bool *valid_input, int *token_counter){
+
+  unsigned int num_arguments = 0;
+  Command *current_pipeline  = &job->pipeline[(job->num_stages)++];
+
+  current_pipeline->argv[num_arguments++] = job->usr_input.argv[*token_counter];
+
+  (*token_counter)++;
+
+
+
+ 
+    if(job->usr_input.argv[*token_counter] == NULL) {
+  
+    }else if (string_compare(job->usr_input.argv[*token_counter],"|", 0))  {
+
+
+
+    } else if (string_compare(job->usr_input.argv[*token_counter],">", 0)) {
+
+
+    } else if (string_compare(job->usr_input.argv[*token_counter],"<", 0)) {
+
+      
+    }
+
+
+  
+
+
+/*
+  printf("%s \n", current_pipeline->argv[num_arguments]);
+*/
+
+}
+
+
+
+
+void state_encountered_pipe(JOB *job, bool *valid_input){
+
+
+  
+}
+
+void state_encountered_ampersand_sign(JOB *job, bool *valid_input){
+
+
+  
+}
+
+
+void state_encountered_outfile_sign(JOB *job, bool *valid_input){
+
+
+  
+}
+
+void state_encountered_infile_sign(JOB *job, bool *valid_input){
+
+
+  
+}
+
+
+void input_incorrect(JOB *job, bool *valid_input){
+
+
+  
+}
+
+
+
+void state_input_valid(JOB *job, bool *valid_input){
+
+*valid_input = FALSE;
+
+  
+}
+
+
 
 
