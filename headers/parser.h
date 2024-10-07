@@ -14,7 +14,7 @@
 #define FALSE 0
 #define TRUE 1
 
-#define MAX_PIPELINE_LEN 2
+#define MAX_PIPELINE_LEN 128
 #define MAX_ARGS 128
 
 typedef int bool;
@@ -78,28 +78,16 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
 
 bool validate_and_parse_job(JOB *job);
 
-void state_reading_argument(JOB *job, bool *valid_input, int *token_counter);
+void read_pipeline(JOB *job, bool *valid_input,  unsigned int *token_counter);
+
+bool is_special_symbol(char *str);
+void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter);
+
+void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_counter);
 
 
 
-void state_encountered_pipe(JOB *job, bool *valid_input);
-
-void state_encountered_ampersand_sign(JOB *job, bool *valid_input);
-
-void state_encountered_outfile_sign(JOB *job, bool *valid_input);
-
-void state_encountered_infile_sign(JOB *job, bool *valid_input);
-
-
-
-void input_incorrect(JOB *job, bool *valid_input);
-
-
-void state_input_valid(JOB *job, bool *valid_input);
-
-
-
-void state_input_valid(JOB *job, bool *valid_input);
-
+void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_counter);
+void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter);
 
 #endif

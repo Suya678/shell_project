@@ -2,6 +2,7 @@
 #include "stdio.h"
 
 
+
 /**
  * @brief The funcition reads user input
  *
@@ -191,112 +192,258 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
 
 
 
+/**
+ * @brief Validates that the user's input is in the correct syntax and initializes the job structure
+ * 
+ * The function verifies whether the first token is a special symbol. 
+ * If it is, it return early with FALSE as the first symbol should start with a non special 
+ * symbol. If the first symbol is not a special one, then it calls read_pipeline to parse 
+ * the input and update the job structure
+ * 
+ * @param *job pointer to the JOB structure containing user input, pipeline and other info.
+ * 
+ * @return Returns TRUE if the input is valid; otherwise, FALSE.
+ */
+
 bool validate_and_parse_job(JOB *job) {
-  
-  bool valid_input = TRUE;
-  job->infile_path = NULL;        /* NULL for no output redirection     */
+  bool valid_input  = TRUE;
+  job->infile_path = NULL;            /* NULL for no output redirection     */
   job->outfile_path = NULL;           /* NULL for no input redirection      */
   job->background = FALSE;
-  int token_counter = 0;
+  job->num_stages = 0;
+  unsigned int token_counter = 0;
   
-  printf("%d\n", job->usr_input.num_tokens);
-
-  /*We are guarnteed at least one token and it must start with an argumnet*/
-  if(string_compare(job->usr_input.argv[token_counter],"&", 0)  ||
-    string_compare(job->usr_input.argv[token_counter],">", 0)   ||
-    string_compare(job->usr_input.argv[token_counter],"<", 0)   ||
-    string_compare(job->usr_input.argv[token_counter],"|", 0)  ) {
-    printf("here\n");
-    valid_input = FALSE;
+  /*We are guarnteed at least one token and it must start with an non special symbol*/
+  if(is_special_symbol(job->usr_input.argv[token_counter])){
+    return FALSE;
   }
-  state_reading_argument(job, &valid_input, &token_counter);
+  read_pipeline(job, &valid_input, &token_counter);
 
   return valid_input;
 
 }
 
 
+/**
+ * @brief Reads a command pipeline from user input and populates the current stage.
+ * 
+ * The function iterates through user input, collecting token until a special
+ * symbol or NULL is encountered. It then checks for special symbols to handle 
+ * redirection and background execution.
+ * 
+ * @param *job pointer to the JOB structure with the pipeline and user input.
+ * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * @param *valid_input pointer to a boolean indicating whether the input is valid.
+ * 
+ * @return This function does not return any value but modifies the passed in pointers
+ */
 
-void state_reading_argument(JOB *job, bool *valid_input, int *token_counter){
+void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_counter){
 
   unsigned int num_arguments = 0;
-  Command *current_pipeline  = &job->pipeline[(job->num_stages)++];
+  Command *current_pipeline  = &job->pipeline[job->num_stages];
 
-  current_pipeline->argv[num_arguments++] = job->usr_input.argv[*token_counter];
+  (job->num_stages)++;
+  printf("s\n");
+  // Keep adding to the current pipeline until we encounter a NULL or special symbol
+  while(job->usr_input.argv[*token_counter] != NULL &&
+      is_special_symbol(job->usr_input.argv[*token_counter]) == FALSE) {
+      current_pipeline->argv[num_arguments++] = job->usr_input.argv[*token_counter];
+      (*token_counter)++;
 
+  }  
+  current_pipeline->argv[num_arguments] = NULL;
+  current_pipeline->argc = num_arguments; 
+
+
+  if (job->usr_input.argv[*token_counter] != NULL) {
+    switch (*job->usr_input.argv[*token_counter]) {
+    case '|':
+      handle_pipe(job,valid_input,token_counter);
+      break;
+    case '>':
+      handle_input_redirection(job,valid_input,token_counter);
+      break;
+    case '<':
+      handle_output_redirection(job,valid_input,token_counter);
+      break;
+    case '&':
+      handle_background_symbol(job,valid_input,token_counter);
+      break;
+    }
+    
+  }
+
+}
+
+
+/**
+ * @brief Handles the detection of a pipe symbol (`|`) in user input.
+ * 
+ * The function increments the token counter and checks if the next token is valid.
+ * The next token is valid if it is not NULL and does not represent a special symbol. 
+ * If valid, it recursively calls read_pipeline to continue parsing the command stages in the pipeline.
+ * If the token is invalid, it marks the input as invalid.
+ * 
+ * @param *job pointer to the JOB structure containing the command pipeline.
+ * @param *valid_input pointer to a boolean indicating whether the input is valid.
+ * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * 
+ * @return This function does not return any value but will modified the passed in values
+ */
+
+void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter){
   (*token_counter)++;
 
+  if(job->usr_input.argv[*token_counter] == NULL ||
+    is_special_symbol(job->usr_input.argv[*token_counter]) == TRUE) {
+    *valid_input = FALSE;
+  } else {
+    read_pipeline(job,valid_input,token_counter);
+  }
+
+}
 
 
- 
-    if(job->usr_input.argv[*token_counter] == NULL) {
+/**
+ * @brief Handles the detection of the background execution symbol (`&`).
+ * 
+ * The function sets the background flag in the job structure and increments the token 
+ * counter. If additional tokens are present after `&`, it marks the input as invalid.
+ * 
+ * @param *job pointer to the JOB structure containing the background flag.
+ * @param *valid_input pointer to a boolean indicating whether the input is valid.
+ * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * 
+ * @return This function does not return any value but may modify valid input parameter
+ */
+
+void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_counter){
+  job->background = TRUE;
+  (*token_counter)++; //Consume the current '&' token
+
+  // There cannot be ay more tokens after '&'
+  if (job->usr_input.argv[*token_counter] != NULL){
+    *valid_input = FALSE;
+  }
+}
+
+/**
+ * @brief Handles output redirection from user input.
+ * 
+ * The function consumes the output redirection symbol (`>`) and checks if the 
+ * next token is a valid path( ie not a NULL or a special symbol.
+ * If valid, it updates the job structure. It also verifies that no tokens
+ * other than "&".
+ *  
+ * @param *job pointer to the JOB structure containing the output file path.
+ * @param *valid_input pointer to a boolean indicating whether the input is valid.
+ * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * 
+ * @return This function does not return any value but will modify the passed in parameters.
+ */
+
+void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
   
-    }else if (string_compare(job->usr_input.argv[*token_counter],"|", 0))  {
+  (*token_counter)++; // Consume the '<' token
 
+  // Check if the user has provided a infile path
+  if(job->usr_input.argv[*token_counter] == NULL ||
+     is_special_symbol(job->usr_input.argv[*token_counter]) == TRUE) {
+      *valid_input = FALSE;
+      return;
+  } 
+  
+  job->outfile_path = job->usr_input.argv[*token_counter];
 
-
-    } else if (string_compare(job->usr_input.argv[*token_counter],">", 0)) {
-
-
-    } else if (string_compare(job->usr_input.argv[*token_counter],"<", 0)) {
-
-      
+  (*token_counter)++;
+  
+  //Check next token. It cannot be the begging of a new pipeline or
+  //any special symbol other than '&'
+  if(job->usr_input.argv[*token_counter] != NULL) {
+    
+    if(string_compare(job->usr_input.argv[*token_counter], "&", 0)) {
+      handle_background_symbol(job,valid_input,token_counter);
+    } else {
+      *valid_input = FALSE;
     }
+  }
 
+}
 
+/**
+ * @brief Handles input redirection from user input.
+ * 
+ * The function consumes the input redirection symbol (`<`) checks if the 
+ * next token is a valid path(ie not a NULL or a special symbol).
+ * It updates the job structure and ensures that the next token 
+ * does not start a new pipeline or contain special symbols, except for '&' or '<'.
+ * 
+ * @param *job pointer to the JOB structure containing the input file path.
+ * @param *valid_input pointer to a boolean indicating whether the input is valid.
+ * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * 
+ * @return This function does not return any value.
+ */
+
+void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
+
+  // Consumer the > token
+  (*token_counter)++;
+
+  //Make sure next token is not NULL or a special symbol as we need an input path
+  if(job->usr_input.argv[*token_counter] == NULL || is_special_symbol(job->usr_input.argv[*token_counter]) == TRUE) {
+    *valid_input = FALSE;
+    return;
+  }
   
-
-
-/*
-  printf("%s \n", current_pipeline->argv[num_arguments]);
-*/
+  job->infile_path = job->usr_input.argv[*token_counter];
+  
+  (*token_counter)++;
+  
+  //Check the next token
+  if(job->usr_input.argv[*token_counter] != NULL) {
+    
+    if(string_compare(job->usr_input.argv[*token_counter],"&",0)) {
+      handle_background_symbol(job,valid_input,token_counter);
+    } else if(string_compare(job->usr_input.argv[*token_counter],"<",0)){
+      handle_output_redirection(job,valid_input,token_counter);
+    } else {
+      *valid_input = FALSE; // Next token cant be the beginning of a new pipeline
+    }
+    
+  }
 
 }
 
 
 
 
-void state_encountered_pipe(JOB *job, bool *valid_input){
 
 
-  
+
+
+
+/**
+ * @brief Checks if the given string matches a special symbol.
+ *
+ * These symbols are defined as special characters used in the shell 
+ * such as '&', '>', '<', or '|'. This function compares the input string 
+ * to these symbols and returns TRUE if a match is found.
+ *
+ * @param str[] The string to be checked.
+ * @return This function returns TRUE if the string is a terminal symbol, otherwise FALSE.
+ */
+bool is_special_symbol(char *str){
+
+   if(string_compare(str,"&", 0)  ||
+    string_compare(str,">", 0)   ||
+    string_compare(str,"<", 0)   ||
+    string_compare(str,"|", 0)  ) {
+    return TRUE;
+  }
+
+  return FALSE;
+
 }
-
-void state_encountered_ampersand_sign(JOB *job, bool *valid_input){
-
-
-  
-}
-
-
-void state_encountered_outfile_sign(JOB *job, bool *valid_input){
-
-
-  
-}
-
-void state_encountered_infile_sign(JOB *job, bool *valid_input){
-
-
-  
-}
-
-
-void input_incorrect(JOB *job, bool *valid_input){
-
-
-  
-}
-
-
-
-void state_input_valid(JOB *job, bool *valid_input){
-
-*valid_input = FALSE;
-
-  
-}
-
-
-
 
