@@ -244,7 +244,7 @@ void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_counter){
   Command *current_pipeline  = &job->pipeline[job->num_stages];
 
   (job->num_stages)++;
-  printf("s\n");
+
   // Keep adding to the current pipeline until we encounter a NULL or special symbol
   while(job->usr_input.argv[*token_counter] != NULL &&
       is_special_symbol(job->usr_input.argv[*token_counter]) == FALSE) {
