@@ -38,7 +38,6 @@ void get_usr_input(USR_INP *usr_inp) {
       _exit(1); 
     }
     
-    
     if(usr_inp->usr_input[count -1] != '\n') {         /*User entered more than 256 characters*/
       print_string(error_msg);
       flush_std_input_buffer();
