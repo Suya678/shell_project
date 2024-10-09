@@ -8,15 +8,12 @@
 
 
 int main(char argc, char *argv[], char *envp[]) {
-  USR_INP usr_inp;
+  JOB job;
   unsigned int num = 0;
-  get_usr_input(&usr_inp);
+  get_usr_input(&job.usr_input);
 
-
-
-  while(num < usr_inp.num_tokens){
-    printf("%s\n",usr_inp.argv[num]);
-    num++;
+  if(validate_and_parse_job(&job) == TRUE ) {
+    run_job(&job);
   }
 
   return 0;

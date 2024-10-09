@@ -148,9 +148,9 @@ bool is_string_empty(char string[]) {
  * Finally once all tokens have been processed tokens[*num_tokens] is set to NULL to finalize the 
  * end of the array. The function will not allow the number of tokens to exceed the MAX_SIZE
  *
- * @param *to_decompose input string to be tokenized
- * @param *tokens[] array of pointers to characters within to_decompose
- * @param *num_of_tokens pointer to an int where the number of tokens found is stored
+ * @param to_decompose input string to be tokenized
+ * @param tokens[] array of pointers to characters within to_decompose
+ * @param num_of_tokens pointer to an int where the number of tokens found is stored
  *
  * @return This function does not return any value.
  */

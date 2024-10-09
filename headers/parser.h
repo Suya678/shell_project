@@ -1,10 +1,14 @@
+
+#ifndef PARSER
+#define PARSER
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-#ifndef PARSER
-#define PARSER
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 #define FD_STD_INP 0
