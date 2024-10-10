@@ -203,7 +203,6 @@ void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_toke
  * 
  * @return Returns TRUE if the input is valid; otherwise, FALSE.
  */
-
 bool validate_and_parse_job(JOB *job) {
   bool valid_input  = TRUE;
   job->infile_path = NULL;            /* NULL for no output redirection     */
@@ -260,10 +259,10 @@ void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_counter){
     case '|':
       handle_pipe(job,valid_input,token_counter);
       break;
-    case '>':
+    case '<':
       handle_input_redirection(job,valid_input,token_counter);
       break;
-    case '<':
+    case '>':
       handle_output_redirection(job,valid_input,token_counter);
       break;
     case '&':
@@ -333,7 +332,7 @@ void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_c
  * The function consumes the output redirection symbol (`>`) and checks if the 
  * next token is a valid path( ie not a NULL or a special symbol.
  * If valid, it updates the job structure. It also verifies that no tokens
- * other than "&".
+ * other than "&" are next.
  *  
  * @param *job pointer to the JOB structure containing the output file path.
  * @param *valid_input pointer to a boolean indicating whether the input is valid.
@@ -357,7 +356,7 @@ void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_
 
   (*token_counter)++;
   
-  //Check next token. It cannot be the begging of a new pipeline or
+  //Check next token. It cannot be the beginning of a new pipeline or
   //any special symbol other than '&'
   if(job->usr_input.argv[*token_counter] != NULL) {
     
@@ -405,7 +404,7 @@ void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_c
     
     if(string_compare(job->usr_input.argv[*token_counter],"&",0)) {
       handle_background_symbol(job,valid_input,token_counter);
-    } else if(string_compare(job->usr_input.argv[*token_counter],"<",0)){
+    } else if(string_compare(job->usr_input.argv[*token_counter],">",0)){
       handle_output_redirection(job,valid_input,token_counter);
     } else {
       *valid_input = FALSE; // Next token cant be the beginning of a new pipeline

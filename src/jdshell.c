@@ -9,11 +9,11 @@
 
 int main(char argc, char *argv[], char *envp[]) {
   JOB job;
-  unsigned int num = 0;
+  
   get_usr_input(&job.usr_input);
 
   if(validate_and_parse_job(&job) == TRUE ) {
-    run_job(&job);
+    run_job(&job, NULL);
   }
 
   return 0;

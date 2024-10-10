@@ -45,12 +45,12 @@ void CASE_ACCEPTS_1_PIPELINE_VALID_COMMAND(){
   validate_and_parse_job(&job);
   print_command_args(&job);
 
-  printf("Case 4: Please enter 1 pipeline with input redirection   (EX: /bin/ls > kl) \n");
+  printf("Case 4: Please enter 1 pipeline with input redirection   (EX: /bin/ls < kl) \n");
   get_usr_input(&job.usr_input);
   validate_and_parse_job(&job);
   print_command_args(&job);
   
-  printf("Case 5: Please enter 1 pipeline with output redirection   (EX: /bin/ls < kl) \n");
+  printf("Case 5: Please enter 1 pipeline with output redirection   (EX: /bin/ls > kl) \n");
   get_usr_input(&job.usr_input);
   validate_and_parse_job(&job);
   print_command_args(&job);
@@ -60,7 +60,7 @@ void CASE_ACCEPTS_1_PIPELINE_VALID_COMMAND(){
   validate_and_parse_job(&job);
   print_command_args(&job);
 
-  printf("Case 7: Please enter 1 pipeline with input redirection, output redirection\nand background processing enabled  (EX: /bin/ls > kl < l &) \n");
+  printf("Case 7: Please enter 1 pipeline with input redirection, output redirection\nand background processing enabled  (EX: /bin/ls < kl > l &) \n");
   get_usr_input(&job.usr_input);
   validate_and_parse_job(&job);
   print_command_args(&job);
@@ -126,7 +126,7 @@ void CASE_REJECTS_1_PIPELINE_INVALID_COMMAND(){
     printf("THis command was accepted\n");
   }
 
-  printf("Case 7: Please enter 1 pipeline with input redirection but not specifyiing the file | (EX: /bin/ls > ) \nIt should be Rejected\n");
+  printf("Case 7: Please enter 1 pipeline with input redirection but not specifyiing the file | (EX: /bin/ls < ) \nIt should be Rejected\n");
   get_usr_input(&job.usr_input);
   if(validate_and_parse_job(&job) == FALSE) {
     printf("THis command was rejected\n");
@@ -134,7 +134,7 @@ void CASE_REJECTS_1_PIPELINE_INVALID_COMMAND(){
     printf("THis command was accepted\n");
   }
   
-  printf("Case 8: Please enter 1 pipeline with output redirection but not specifying the file | (EX: /bin/ls < ) \nIt should be Rejected\n");
+  printf("Case 8: Please enter 1 pipeline with output redirection but not specifying the file | (EX: /bin/ls > ) \nIt should be Rejected\n");
   get_usr_input(&job.usr_input);
   if(validate_and_parse_job(&job) == FALSE) {
     printf("THis command was rejected\n");
@@ -175,12 +175,12 @@ void CASE_ACCEPTS_2_PIPELINE_VALID_COMMAND(){
   validate_and_parse_job(&job);
   print_command_args(&job);
 
-  printf("Case 3: Please enter 2 pipeline with input redirection   (EX: /bin/ls -kl | bin/usr > ss) \n");
+  printf("Case 3: Please enter 2 pipeline with input redirection   (EX: /bin/ls -kl | bin/usr < ss) \n");
   get_usr_input(&job.usr_input);
   validate_and_parse_job(&job);
   print_command_args(&job);
 
-  printf("Case 4: Please enter 2 pipeline with output redirection   (EX: /bin/ls -kl | bin/usr < ss) \n");
+  printf("Case 4: Please enter 2 pipeline with output redirection   (EX: /bin/ls -kl | bin/usr > ss) \n");
   get_usr_input(&job.usr_input);
   validate_and_parse_job(&job);
   print_command_args(&job);
@@ -190,7 +190,7 @@ void CASE_ACCEPTS_2_PIPELINE_VALID_COMMAND(){
   validate_and_parse_job(&job);
   print_command_args(&job);
 
-  printf("Case 6: Please enter 2 pipeline with input redirection, output redirection\nand background processing enabled  (EX: /bin/ls | bin/usr > kl < l &) \n");
+  printf("Case 6: Please enter 2 pipeline with input redirection, output redirection\nand background processing enabled  (EX: /bin/ls | bin/usr < kl > l &) \n");
   get_usr_input(&job.usr_input);
   validate_and_parse_job(&job);
   print_command_args(&job);
@@ -225,7 +225,7 @@ printf("\n");
   }
   
 
-  printf("Case 3: Please enter 2 pipeline end it with the input redirection\nsymbol without specifying the file path(EX: /bin/ls | usr > ) \nIt should be Rejected\n");
+  printf("Case 3: Please enter 2 pipeline end it with the input redirection\nsymbol without specifying the file path(EX: /bin/ls | usr < ) \nIt should be Rejected\n");
   get_usr_input(&job.usr_input);
   if(validate_and_parse_job(&job) == FALSE) {
     printf("THis command was rejected\n");
@@ -233,7 +233,7 @@ printf("\n");
     printf("THis command was accepted\n");
   }
 
-    printf("Case 3: Please enter 2 pipeline end it with the output redirection\nsymbol without specifying the file path(EX: /bin/ls | usr < ) \nIt should be Rejected\n");
+    printf("Case 3: Please enter 2 pipeline end it with the output redirection\nsymbol without specifying the file path(EX: /bin/ls | usr > ) \nIt should be Rejected\n");
   get_usr_input(&job.usr_input);
   if(validate_and_parse_job(&job) == FALSE) {
     printf("THis command was rejected\n");
