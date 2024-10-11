@@ -186,7 +186,6 @@ void run_command(Command *command, int input_fd, int output_fd, int fd_close, ch
 
   if(pid == 0)
   {
-    signal(SIGINT,SIG_DFL);
 
     if(input_fd != FD_STD_INP) {
       redirect_fd(FD_STD_INP,input_fd);
