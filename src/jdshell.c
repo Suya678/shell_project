@@ -10,12 +10,11 @@
 
 
 int main(char argc, char *argv[], char *envp[]) {
-  signal_child_setup();
-  
-  JOB job;
-  sa.sa_flags = 0;
-  bool is_job_valid;
 
+  JOB job;
+  signal_child_setup();/*Setup proper backgorund processing*/
+
+  bool is_job_valid;
   get_usr_input(&job.usr_input);  
   while(1) {
     is_job_valid = validate_and_parse_job(&job);

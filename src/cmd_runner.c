@@ -13,7 +13,7 @@ void _close(int fd);
 void redirect_fd(int old_fd, int new_fd);
 void redirect_fd(int old_fd, int new_fd);
 void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]);
-
+void signal_child_handler(int sig);
 
 /**
  * @brief Handles running of a single job 
@@ -246,7 +246,7 @@ void signal_child_setup(){
 
   if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
     perror("sigaction");
-    return 1;
+    return;
   }
 }
 
