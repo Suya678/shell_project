@@ -1,7 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra
 
-
 tst_: tst_cmd_runner.o parser.o cmd_runner.o our_string.o 
 	$(CC) $(CFLAGS) tst_cmd_runner.o parser.o cmd_runner.o our_string.o -o tst_cmd_runner
 
