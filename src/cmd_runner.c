@@ -209,13 +209,36 @@ void redirect_fd(int old_fd, int new_fd){
 }
 
 
+/**
+ * @brief Sets up the sigaction struct 
+ *
+ * This function creates a sigfunction structure sa. 
+ * The handler attribute is assigned to the signal_child_handler function.
+ * sigemptyset allows for no signal interrupts to be masked.
+ * 
+ * @param None
+ * @return Does not return anything
+ */
+void signal_child_setup(){
+  struct sigaction sa;
+  sa.sa_handler = signal_child_handler; //in cmd_runner.c
+  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+
+  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
+    perror("sigaction");
+    return 1;
+  }
+}
 
 /**
- * @brief 
+ * @brief Terminates zombie children
  *
- * @param old_fd 
- * @param new_fd 
-
+ * This function will check all children and 
+ * while not blocking will deallocate the resources the
+ * zombie is using by waiting on it. It will do this in a loop
+ * until no more children are zombies.  
+ *
+ * @param int sig - signal that triggered the handler
  * @return Does not return anything
  */
 void signal_child_handler(int sig){

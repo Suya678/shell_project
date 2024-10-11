@@ -2,22 +2,29 @@
 #include "cmd_runner.h"
 #include "parser.h"
 
-
+/*
 void CASE_SINGLE_PIPELINE_JOB();
 void CASE_MULTI_PIPELINE_JOBS();
 void CASE_BACKGROUND_JOBS();
 void CASE_ERROR_CASES();
 void CASE_REDIRECTION_ERRORS();
+*/
+void CASE_ZOMBIE_KILLER_FAIL();
+void CASE_ZOMBIE_KILLER_SUCCESS();
 
 int main() {
 
   printf("TESTING COMMAND RUNNER FUNCTIONALITY\nPress enter to continue\n");
   getchar();
+  /*
   CASE_SINGLE_PIPELINE_JOB();
   CASE_MULTI_PIPELINE_JOBS();
   CASE_BACKGROUND_JOBS();
   CASE_ERROR_CASES();  
   CASE_REDIRECTION_ERRORS();
+  */
+  CASE_ZOMBIE_KILLER_FAIL();
+  CASE_ZOMBIE_KILLER_SUCCESS();
   printf("JOB RUNNER TESTS COMPLETE\n");
 
   return 0;
@@ -238,4 +245,56 @@ void CASE_REDIRECTION_ERRORS(){
   getchar();
   run_job(&midtermAns_job, NULL);
   printf("\n\n");
+}
+
+void CASE_ZOMBIE_KILLER_FAIL(){
+
+  printf("BEGINNING ZOMBIE CHILDREN TESTS WITHOUT SIGNAL HANDLING\n");
+
+  pid_t pid = fork();
+  if(pid < 0){
+    perror("fork failed");
+    exit(1);
+  }
+  if(pid == 0){
+    printf("\tchild simulating work\n");
+    sleep(3);
+    printf("\tchild exiting\n");
+    exit(0);
+  } else {
+    printf("\tparent waiting on child\n");
+    sleep(20);
+    printf("\tparent done waiting\n");
+  }
+
+}
+
+void CASE_ZOMBIE_KILLER_SUCCESS(){
+  struct sigaction sa;
+  sa.sa_handler = signal_child_handler; //in cmd_runner.c
+  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+
+  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
+    perror("sigaction");
+    return;
+  }
+  
+  printf("\n\nBEGINNING ZOMBIE CHILDREN TESTS WITH SIGNAL HANDLING\n");
+
+  pid_t pid = fork();
+  if(pid < 0){
+    perror("fork failed");
+    exit(1);
+  }
+  if(pid == 0){
+    printf("\tchild simulating work\n");
+    sleep(3);
+    printf("\tchild exiting\n");
+    exit(0);
+  } else {
+    printf("\tparent waiting on child\n");
+    sleep(20);
+    printf("\tparent done waiting\n");
+  }
+
 }
