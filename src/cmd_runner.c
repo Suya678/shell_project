@@ -33,6 +33,7 @@ void handle_multi_pipeline_job(JOB *job, char *envp[]) {
   unsigned int pipe_index = 0;
   int pipes[job->num_stages -1][2];
   
+  
   pipe(pipes[pipe_index]);
   
   if(initialize_file_descriptors(job, &input_fd, &output_fd) == FALSE) return;

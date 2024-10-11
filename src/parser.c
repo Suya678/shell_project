@@ -23,7 +23,7 @@
  */
 void get_usr_input(USR_INP *usr_inp) {
   ssize_t count = 0;
-  char shell_prompt[] = "jdshell$$: ";
+  char shell_prompt[] = "jdepshell😀💩$$: ";
   char error_msg[] ="Error: The input was longer than 256 characters\n";
   bool valid_input = FALSE;
   
