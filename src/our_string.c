@@ -98,12 +98,11 @@ void my_str_cat(char *source, char *destination){
 /**
  *  @brief Copies characters from the source string into the destination string until the delimiter or null is encountered
 *
- * Does not do bounds checkign so user has to make sure the destination is big enough to accomodate source
+ * Does not do bounds checking so user has to make sure the destination is big enough to accomodate source
  *
- * @param destination pointer to the string being copied to 
- * @param source pointer to the string being copied to destination
- * @param delimiter copying stops when this character is encountered in the source string or null
-
+ * @param destination Pointer to the string being copied to.
+ * @param source Pinter to the string being copied to destination.
+ * @param delimiter Copying stops when this character or '\0' is encountered in the source string
  * @return Does not return anything
  */
 void string_copy(char *source, char *destination, char delimiter) {

@@ -1,7 +1,31 @@
 #include "cmd_runner.h"
 
+#define READ_MODE 0
+#define WRITE_MODE 1
+#define PIPE_READ_END 0
+#define PIPE_WRITE_END 1
+#define NO_FD_TO_CLOSE -1
+
+void handle_multi_pipeline_job(JOB *job, char *envp[]);
+void handle_single_pipeline_job(JOB *job, char *envp[]);
+bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd);
+void _close(int fd);
+void redirect_fd(int old_fd, int new_fd);
+void redirect_fd(int old_fd, int new_fd);
+void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]);
 
 
+/**
+ * @brief Handles running of a single job 
+ * 
+ * This function runs a job using helper functions. It also decides to
+ * wait for child processes to finished based on whether the background
+ * property in the job struc is false or true. 
+ * 
+ * @param job pointer to the JOB structure containing the pipeline stages.
+ * 
+ * @return Does not return anything.
+ */
 void run_job(JOB *job, char *envp[]) {
   int status;
   if(job->num_stages > 1){
@@ -9,15 +33,16 @@ void run_job(JOB *job, char *envp[]) {
   } else {
     handle_single_pipeline_job(job,envp);
   }
+  if(job->background == FALSE) {
+    while ((wait(&status)) != -1);  /*wait for all child processes to finish */
+  }
 
-  if(job->background == FALSE) wait(&status);
 }
 
-
 /**
- * @brief Handles execution of job wiht multiple stages 
+ * @brief Handles execution of job with multiple stages 
  * 
- * This function executes of multiple stages in a pipeline. It sets up 
+ * This function executes multiple stages in a pipeline. It sets up 
  * the necessary file descriptors for input and output, and handles piping between 
  * stages. For the first stage, input comes from a file or stdin, and for the final 
  * stage, output is directed to stdout or a file. Intermediate stages transfer data 
@@ -83,9 +108,6 @@ void handle_single_pipeline_job(JOB *job, char *envp[]) {
   if(output_fd != FD_STD_OUT) _close(output_fd);
 
 }
-
-
-
 
 /**
  * @brief Initializes file descriptors for input and output 
@@ -176,7 +198,7 @@ void run_command(Command *command, int input_fd, int output_fd, int fd_close, ch
     }
     
     execve(command->argv[0], command->argv, envp);
-    perror("Error running process ");    
+    perror("Error running process");    
     _exit(-1);
     
   } else if(pid == -1){
@@ -185,8 +207,6 @@ void run_command(Command *command, int input_fd, int output_fd, int fd_close, ch
   }
 
 }
-
-
 
 /**
  * @brief Redirects  old file descriptor to a new one
@@ -206,5 +226,4 @@ void redirect_fd(int old_fd, int new_fd){
     perror("Close in redirect_fd Failed");
     exit(-1);
   }
-
 }
