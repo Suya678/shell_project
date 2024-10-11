@@ -207,3 +207,23 @@ void redirect_fd(int old_fd, int new_fd){
   }
 
 }
+
+
+
+/**
+ * @brief 
+ *
+ * @param old_fd 
+ * @param new_fd 
+
+ * @return Does not return anything
+ */
+void signal_child_handler(int sig){
+  int status;
+  pid_t pid;
+
+  while((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+   ;
+  }
+
+}

@@ -19,4 +19,5 @@ int open_file(char *file_path, int mode);
 void handle_multi_pipeline_job(JOB *job, char *envp[]);
 void handle_single_pipeline_job(JOB *job, char *envp[]);
 bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd);
+void signal_child_handler(int sig);
 #endif
