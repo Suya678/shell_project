@@ -62,3 +62,56 @@ bool string_compare(char *str1, char *str2, int num_to_compare){
   return is_equal;
 
 }
+
+
+
+
+/**
+ *  @brief Concatinates the source to the destination array
+ *
+ *
+ * Does not do bounds checkign so user has to make sure the destination is big enough to accomodate source
+ *
+ * @param destination pointer to the string to append to 
+ * @param source pointer to the string being appended to destination
+ *
+ * @return Does not return anything
+ */
+void my_str_cat(char *source, char *destination){
+  while(*destination != '\0')
+    destination++;
+
+  while(*source != '\0') {
+    *destination = *source;
+    destination++; 
+    source++;
+  }
+  
+  *destination = '\0';
+
+
+}
+
+
+
+
+/**
+ *  @brief Copies characters from the source string into the destination string until the delimiter or null is encountered
+*
+ * Does not do bounds checking so user has to make sure the destination is big enough to accomodate source
+ *
+ * @param destination Pointer to the string being copied to.
+ * @param source Pinter to the string being copied to destination.
+ * @param delimiter Copying stops when this character or '\0' is encountered in the source string
+ * @return Does not return anything
+ */
+void string_copy(char *source, char *destination, char delimiter) {
+  while(*source != delimiter && *source != '\0') {
+    *destination = *source;
+    destination++;
+    source++;
+  }
+
+  *destination = '\0';
+
+}
