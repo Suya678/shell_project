@@ -13,7 +13,7 @@ int main(char argc, char *argv[], char *envp[]) {
 
   JOB job;
   signal_child_setup();/*Setup proper backgorund processing*/
-
+  signal(SIGINT,SIG_IGN);
   bool is_job_valid;
   get_usr_input(&job.usr_input);  
   while(1) {

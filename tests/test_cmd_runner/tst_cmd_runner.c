@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "cmd_runner.h"
 #include "parser.h"
-
+void signal_child_handler();
 /*
 void CASE_SINGLE_PIPELINE_JOB();
 void CASE_MULTI_PIPELINE_JOBS();
