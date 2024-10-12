@@ -1,6 +1,5 @@
 #include "our_string.h"
 
-#include "stdio.h"
 /**
  * @brief Prints a null terminated string.
  *
@@ -115,3 +114,27 @@ void string_copy(char *source, char *destination, char delimiter) {
   *destination = '\0';
 
 }
+
+/**
+ * @brief Checks if the given string is empty.
+ *
+ * An empty string is defined as one with only consecutive whispace terminated by \n.
+ * For ex : "      \n" is empty, so is "            \n"
+ * The function assumes the string ends eventually with a newline
+ * @param string[] to be checked.
+ * @return This function returns TRUE if the string is empty, otherwise false.
+ */
+bool is_string_empty(char string[]) {
+
+  char *str = string;
+
+  while (*str != '\n') {
+
+    if(*str != ' ') {
+      return FALSE;
+    }
+    str++;
+  }
+  return TRUE;
+}
+

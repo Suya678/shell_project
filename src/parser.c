@@ -1,7 +1,15 @@
+
 #include "parser.h"
-#include "stdio.h"
 
-
+static void flush_std_input_buffer();
+static void flush_input_string(char str[]);
+static void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_tokens);
+static void read_pipeline(JOB *job, bool *valid_input,  unsigned int *token_counter);
+static void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter);
+static void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_counter);
+static void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_counter);
+static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter);
+static bool is_special_symbol(char *str);
 
 /**
  * @brief The funcition reads user input
@@ -32,10 +40,9 @@ void get_usr_input(USR_INP *usr_inp) {
     print_string(shell_prompt);
     count = read(FD_STD_INP, usr_inp->usr_input, MAX_SIZE);
 
-    /*Exit if read failed*/
+
     if (count == -1) {
-      write(FD_STD_ERR, "Error reading input in read_usr_inp function\n", 46);
-      _exit(1); 
+      continue;  
     }
     
     if(usr_inp->usr_input[count -1] != '\n') {         /*User entered more than 256 characters*/
@@ -46,7 +53,7 @@ void get_usr_input(USR_INP *usr_inp) {
     }
     
   }
-  
+
   usr_inp->usr_input[count - 1] = '\0';
 
   string_tokenizer(usr_inp->usr_input,usr_inp->argv,&(usr_inp->num_tokens));
@@ -63,7 +70,7 @@ void get_usr_input(USR_INP *usr_inp) {
  *
  * @return This function does not return any value.
  */
-void flush_std_input_buffer(){
+static void flush_std_input_buffer(){
   
   size_t buff_size = 100;
   char temp_buff[buff_size];
@@ -87,53 +94,6 @@ void flush_std_input_buffer(){
 }
 
 
-
-
-
-/**
- * @brief Flushes the contents of a string buffer.
- *
- * This function clears all characters in a given string buffer by setting 
- * every character to the null terminator.
- * @param str[] array of characters to be flushed.
- * @return This function does not return any value.
- */
-void flush_input_string(char str[]){
-
-  for(int i = 0; str[i] != '\0'; i++) {
-    str[0] = '\0';
-  }
-}
-
-
-
-
-
-/**
- * @brief Checks if the given string is empty.
- *
- * An empty string is defined as one with only consecutive whispace terminated by \n.
- * For ex : "      \n" is empty, so is "            \n"
- * The function assumes the string ends eventually with a newline
- * @param string[] to be checked.
- * @return This function returns TRUE if the string is empty, otherwise false.
- */
-bool is_string_empty(char string[]) {
-
-  char *str = string;
-
-  while (*str != '\n') {
-
-    if(*str != ' ') {
-      return FALSE;
-    }
-    str++;
-  }
-  return TRUE;
-}
-
-
-
 /**
  * @brief decomposes a commandline string into the separate words/tokens removing the
  * whitespace. It stores the tokens in an array and tracks how many tokens were found.
@@ -154,7 +114,7 @@ bool is_string_empty(char string[]) {
  *
  * @return This function does not return any value.
  */
-void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_tokens){
+static void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_tokens){
   char *curr = to_decompose;
   *num_tokens = 0;
   
@@ -236,7 +196,7 @@ bool validate_and_parse_job(JOB *job) {
  * @return This function does not return any value but modifies the passed in pointers
  */
 
-void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_counter){
+static void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_counter){
 
   unsigned int num_arguments = 0;
   Command *current_pipeline  = &job->pipeline[job->num_stages];
@@ -290,7 +250,7 @@ void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_counter){
  * @return This function does not return any value but will modified the passed in values
  */
 
-void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter){
+static void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter){
   (*token_counter)++;
 
   if(job->usr_input.argv[*token_counter] == NULL ||
@@ -316,7 +276,7 @@ void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter){
  * @return This function does not return any value but may modify valid input parameter
  */
 
-void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_counter){
+static void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_counter){
   job->background = TRUE;
   (*token_counter)++; //Consume the current '&' token
 
@@ -341,7 +301,7 @@ void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_c
  * @return This function does not return any value but will modify the passed in parameters.
  */
 
-void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
+static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
   
   (*token_counter)++; // Consume the '<' token
 
@@ -384,7 +344,7 @@ void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_
  * @return This function does not return any value.
  */
 
-void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
+static  void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
 
   // Consumer the > token
   (*token_counter)++;
@@ -432,7 +392,7 @@ void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *token_c
  * @param str[] The string to be checked.
  * @return This function returns TRUE if the string is a terminal symbol, otherwise FALSE.
  */
-bool is_special_symbol(char *str){
+static bool is_special_symbol(char *str){
 
    if(string_compare(str,"&", 0)  ||
     string_compare(str,">", 0)   ||

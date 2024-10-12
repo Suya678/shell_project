@@ -6,14 +6,16 @@
 #define PIPE_WRITE_END 1
 #define NO_FD_TO_CLOSE -1
 
-void handle_multi_pipeline_job(JOB *job, char *envp[]);
-void handle_single_pipeline_job(JOB *job, char *envp[]);
-bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd);
-void _close(int fd);
-void redirect_fd(int old_fd, int new_fd);
-void redirect_fd(int old_fd, int new_fd);
-void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]);
-void signal_child_handler(int sig);
+static void handle_multi_pipeline_job(JOB *job, char *envp[]);
+static void handle_single_pipeline_job(JOB *job, char *envp[]);
+static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd);
+static void _close(int fd);
+static void redirect_fd(int old_fd, int new_fd);
+static void redirect_fd(int old_fd, int new_fd);
+static void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]);
+static void signal_child_handler(int sig);
+
+
 
 /**
  * @brief Handles running of a single job 
@@ -34,7 +36,7 @@ void run_job(JOB *job, char *envp[]) {
     handle_single_pipeline_job(job,envp);
   }
   if(job->background == FALSE) {
-    while ((wait(&status)) != -1);  /*wait for all child processes to finish */
+    while ((wait(&status)) > 1);  /*wait for all child processes to finish */
   }
 
   
@@ -53,7 +55,7 @@ void run_job(JOB *job, char *envp[]) {
  * 
  * @return Does not return anything.
  */
-void handle_multi_pipeline_job(JOB *job, char *envp[]) {
+static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
   int input_fd, output_fd;
   unsigned int current_stage = 0;
   unsigned int pipe_index = 0;
@@ -98,7 +100,7 @@ void handle_multi_pipeline_job(JOB *job, char *envp[]) {
  * @param job pointer to the JOB structure containing pipeline and file paths.
  * @return Does not return anything
  */
-void handle_single_pipeline_job(JOB *job, char *envp[]) {
+static void handle_single_pipeline_job(JOB *job, char *envp[]) {
   int input_fd, output_fd;
   
   if(initialize_file_descriptors(job, &input_fd, &output_fd) == FALSE) return;
@@ -123,7 +125,7 @@ void handle_single_pipeline_job(JOB *job, char *envp[]) {
  * 
  * @return Returns TRUE on success; otherwise, FALSE if a file could not be opened.
  */
-bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd) {
+static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd) {
   if(job->infile_path != NULL) {
     *input_fd = open(job->infile_path,O_RDONLY);
     if(*input_fd == -1){
@@ -157,7 +159,7 @@ bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd) {
  *
  * @return Does not return anything
  */
-void _close(int fd) {
+static void _close(int fd) {
     if (close(fd) == -1) perror("Error closing file descriptor");
 }
 
@@ -181,7 +183,7 @@ void _close(int fd) {
  *
  * @return Does not return anything.
  */
-void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]) {
+static void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]) {
   pid_t pid = fork();
 
   if(pid == 0)
@@ -219,7 +221,7 @@ void run_command(Command *command, int input_fd, int output_fd, int fd_close, ch
 
  * @return Does not return anything
  */
-void redirect_fd(int old_fd, int new_fd){
+static void redirect_fd(int old_fd, int new_fd){
   if(dup2(new_fd,old_fd) == -1) {
     perror("Dup2 in redirect_fd Failed");
     exit(-1);
@@ -242,15 +244,18 @@ void redirect_fd(int old_fd, int new_fd){
  * @param None
  * @return Does not return anything
  */
-void signal_child_setup(){
+ void signal_child_setup(){
   struct sigaction sa;
   sa.sa_handler = signal_child_handler; //in cmd_runner.c
   sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+
 
   if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
     perror("sigaction");
     return;
   }
+  
 }
 
 /**
@@ -264,12 +269,7 @@ void signal_child_setup(){
  * @param int sig - signal that triggered the handler
  * @return Does not return anything
  */
-void signal_child_handler(int sig){
+static void signal_child_handler(int sig){
   int status;
-  pid_t pid;
-
-  while((pid = waitpid(-1, &status, WNOHANG)) > 0) {
-   ;
-  }
-
+  while(waitpid(-1, &status, WNOHANG) > 0);
 }
