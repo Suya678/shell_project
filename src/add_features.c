@@ -3,13 +3,14 @@
 #define PATH_MAX_SIZE 400
 #define MAX_NUM_PATHS 40
 
-void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]);
-void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]);
+static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]);
+static void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]);
 
-void search_and_replace_with_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
+static void search_and_replace_with_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
                                   char spare_for_commands[MAX_ARGS][MAX_SIZE + PATH_MAX_SIZE],
                                   Command *current_pipeline, int *spare_count);
-
+static void sig_int_handler(int sig);
+static void signal_child_handler(int sig);
 
 
 
@@ -25,7 +26,7 @@ void search_and_replace_with_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
  * @param current_pipeline Pointer to the current pipeline's command.
  * @param spare_count Counter to track the number of spare commands.
  */
-void search_and_append_executable_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
+static void search_and_append_executable_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
                                         char spare_for_commands[MAX_ARGS][MAX_SIZE + PATH_MAX_SIZE],
                                         Command *current_pipeline, int *spare_count){
    struct stat statbuf;
@@ -104,7 +105,7 @@ void resolve_command_path(JOB *job, char *envp[]){
  * @param envp array of environment variable strings.
  * @param paths array to store the parsed individual paths.
  */
-void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]) {
+static void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]) {
   char *to_path = NULL; 
   char *default_path = "/bin/";
 
@@ -130,7 +131,7 @@ void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZ
  * @param to_path The string containg all the paths to be parsed
  * @param paths Array to store the individual parsed paths
  */
-void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]){
+static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]){
   int number_of_paths = 0;
   char *default_path = "/bin";
   string_copy(default_path, paths[number_of_paths++],'\0');
@@ -159,5 +160,121 @@ void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]){
 
 
 
+
+
+
+/**
+ * @brief Sets up the sigaction struct 
+ *
+ * This function creates a sigfunction structure sa. 
+ * The handler attribute is assigned to the signal_child_handler function.
+ * sigemptyset allows for no signal interrupts to be masked.
+ * 
+ * @param None
+ * @return Does not return anything
+ */
+ void signal_child_setup(){
+  struct sigaction sa;
+  sa.sa_handler = signal_child_handler; //in cmd_runner.c
+  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+
+
+  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
+    perror("COULD NOT INSTALL SIG BACKGROUND HANDLER: ");
+    return;
+  }
   
+}
+
+/**
+ * @brief Terminates zombie children
+ *
+ * This function will check all children and 
+ * while not blocking will deallocate the resources the
+ * zombie is using by waiting on it. It will do this in a loop
+ * until no more children are zombies.  
+ *
+ * @param int sig - signal that triggered the handler
+ * @return Does not return anything
+ */
+static void signal_child_handler(int sig){
+  int status;
+  while(waitpid(-1, &status, WNOHANG) > 0);
+}
+
+
+/**
+ * @brief Sets up signal handling for SIg INT signal 
+ *
+ * This function creates a sigfunction structure sa. 
+ * The handler attribute is assigned to the sig_int_handler function.
+ * sigemptyset allows for no signal interrupts to be masked.
+ * 
+ * @param None
+ * @return Does not return anything
+ */
+void signal_int_setup(){
+
+  struct sigaction sa;
+  sa.sa_handler = sig_int_handler; 
+  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+
+
+  if (sigaction(SIGINT, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
+    perror("COULD NOT INSTALL SIG INT HANDLER: ");
+    return;
+  }
+
+
+}
+
+
+/**
+ * @brief Prints a fresh prompt
+ *
+ * This function will check all children and 
+ * while not blocking will deallocate the resources the
+ * zombie is using by waiting on it. It will do this in a loop
+ * until no more children are zombies.  
+ *
+ * @param int sig - signal that triggered the handler
+ * @return Does not return anything
+ */
+static void sig_int_handler(int sig){
+  print_string("\nQuantumShell$$: ");  
+}
+
+
+
+
+bool _chdir(JOB *job){
+
+struct stat statbuf;
+
+
+if(job->num_stages > 1)
+  return FALSE;
+
+
+if(job->infile_path != NULL || job->infile_path != NULL)
+  return FALSE;
+
+if(job->pipeline[0].argc > 2 || job->pipeline[0].argc < 2)
+  return FALSE;
+
+if(stat(job->pipeline[0].argv[1],&statbuf) == 0) {
+  return TRUE;
+}  
+
+return FALSE;
+
+
+
+}
+
+  
+
+
 

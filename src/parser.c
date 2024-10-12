@@ -1,8 +1,7 @@
 
 #include "parser.h"
 
-static void flush_std_input_buffer();
-static void flush_input_string(char str[]);
+void flush_std_input_buffer();
 static void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_tokens);
 static void read_pipeline(JOB *job, bool *valid_input,  unsigned int *token_counter);
 static void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter);
@@ -70,7 +69,7 @@ void get_usr_input(USR_INP *usr_inp) {
  *
  * @return This function does not return any value.
  */
-static void flush_std_input_buffer(){
+void flush_std_input_buffer(){
   
   size_t buff_size = 100;
   char temp_buff[buff_size];

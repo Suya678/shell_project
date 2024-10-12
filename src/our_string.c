@@ -138,3 +138,20 @@ bool is_string_empty(char string[]) {
   return TRUE;
 }
 
+/**
+ * @brief Returns the lenght of a null terminated string including the null terminator
+ *
+ * @param str String whose length is being checked
+ */
+int get_string_len(char *str ) {
+
+  int count = 0;
+  char *temp = str;
+  
+  while(*temp != '\0') {
+    temp++;
+    count++;
+  }
+  count++;
+  return count; 
+}

@@ -188,6 +188,7 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
 
   if(pid == 0)
   {
+    signal(SIGINT, SIG_DFL);
 
     if(input_fd != FD_STD_INP) {
       redirect_fd(FD_STD_INP,input_fd);
@@ -231,45 +232,4 @@ static void redirect_fd(int old_fd, int new_fd){
     perror("Close in redirect_fd Failed");
     exit(-1);
   }
-}
-
-
-/**
- * @brief Sets up the sigaction struct 
- *
- * This function creates a sigfunction structure sa. 
- * The handler attribute is assigned to the signal_child_handler function.
- * sigemptyset allows for no signal interrupts to be masked.
- * 
- * @param None
- * @return Does not return anything
- */
- void signal_child_setup(){
-  struct sigaction sa;
-  sa.sa_handler = signal_child_handler; //in cmd_runner.c
-  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
-  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
-
-
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
-    perror("sigaction");
-    return;
-  }
-  
-}
-
-/**
- * @brief Terminates zombie children
- *
- * This function will check all children and 
- * while not blocking will deallocate the resources the
- * zombie is using by waiting on it. It will do this in a loop
- * until no more children are zombies.  
- *
- * @param int sig - signal that triggered the handler
- * @return Does not return anything
- */
-static void signal_child_handler(int sig){
-  int status;
-  while(waitpid(-1, &status, WNOHANG) > 0);
 }

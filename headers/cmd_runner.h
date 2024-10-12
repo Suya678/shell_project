@@ -9,6 +9,6 @@
 
 
 void run_job(JOB *job, char *envp[]);
-void signal_child_setup();
+
 
 #endif

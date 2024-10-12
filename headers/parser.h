@@ -54,5 +54,7 @@ typedef struct JOB
 
 
 void get_usr_input(USR_INP *usr_inp);
+void flush_std_input_buffer();
+
 bool validate_and_parse_job(JOB *job);
 #endif
