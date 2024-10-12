@@ -30,13 +30,22 @@ static void signal_child_handler(int sig);
  */
 void run_job(JOB *job, char *envp[]) {
   int status;
+  pid_t pid = fork();
+  if(pid == 0) {
+    signal(SIGINT, SIG_DFL);
+
+
   if(job->num_stages > 1){
     handle_multi_pipeline_job(job, envp);
   } else {
     handle_single_pipeline_job(job,envp);
   }
+  while (wait(&status)> 0); 
+  exit(EXIT_SUCCESS);
+
+ }
   if(job->background == FALSE) {
-    while ((wait(&status)) > 1);  /*wait for all child processes to finish */
+    waitpid(pid,&status, 0); /*wait for the  processes to finish */
   }
 
   
@@ -188,7 +197,7 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
 
   if(pid == 0)
   {
-    signal(SIGINT, SIG_DFL);
+   signal(SIGINT, SIG_DFL);
 
     if(input_fd != FD_STD_INP) {
       redirect_fd(FD_STD_INP,input_fd);

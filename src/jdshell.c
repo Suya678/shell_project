@@ -24,12 +24,10 @@ int main(int argc, char *argv[], char *envp[]) {
 
   JOB job;
   signal_child_setup();/*Setup proper backgorund processing*/
-  signal_int_setup(); /*setup sig int handling*/
+  signal_int_setup();
   while(1) {
-    signal_int_setup();
     get_usr_input(&job.usr_input);
     if(validate_and_parse_job(&job)){
-      signal(SIGINT, SIG_IGN);
      resolve_command_path(&job, envp);
       if(string_compare("exit", job.pipeline[0].argv[0], 0)) break;
       run_job(&job, NULL);
