@@ -1,23 +1,24 @@
-build/jdshell: src/jdshell.o src/our_string.o src/cmd_runner.o src/add_features.o src/parser.o 
-	gcc src/jdshell.o src/our_string.o src/cmd_runner.o src/add_features.o src/parser.o -o builds/jdshell
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror -I./headers
+BUILD_DIR = build
+OBJ_DIR = build/obj_files
+SRC_DIR = src
+HEADERS_DIR = ./headers
 
-src/jdshell.o: src/jdshell.c ./headers/*.h
-	gcc -c src/jdshell.c -I./headers -o src/jdshell.o
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-src/our_string.o: src/our_string.c ./headers/our_string.h
-	gcc -c src/our_string.c -I./headers -o src/our_string.o
+TARGET = $(BUILD_DIR)/jdshell
 
-src/cmd_runner.o: src/cmd_runner.c ./headers/cmd_runner.h 
-	gcc -c src/cmd_runner.c -I./headers -o src/cmd_runner.o
 
-src/add_features.o: src/add_features.c ./headers/add_features.h
-	gcc -c src/add_features.c -I./headers -o src/add_features.o
 
-src/parser.o: src/parser.c ./headers/parser.h 
-	gcc -c src/parser.c -I./headers -o src/parser.o
 
-clean:
-	rm -f build/jdshell src/*.o
 
-object_clean:
-	rm -f src/*.o
+$(TARGET): $(OBJ_FILES)
+	$(CC) $(CFLAGS) $^ -o $@
+
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c $(HEADERS_DIR)/*.h
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+

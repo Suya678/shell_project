@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "signal.h"
 #include "bool.h"
+#include "error_handlers.h"
 
 
 void run_job(JOB *job, char *envp[]);

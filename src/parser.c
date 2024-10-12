@@ -1,8 +1,9 @@
 
 #include "parser.h"
 
-void flush_std_input_buffer();
+static void flush_std_input_buffer();
 static void string_tokenizer(char *to_decompose, char *tokens[], unsigned int *num_tokens);
+static bool validate_input_and_null_terminate(USR_INP *usr_inp, size_t count);
 static void read_pipeline(JOB *job, bool *valid_input,  unsigned int *token_counter);
 static void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter);
 static void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *token_counter);
@@ -11,27 +12,21 @@ static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int 
 static bool is_special_symbol(char *str);
 
 /**
- * @brief The funcition reads user input
+ * @brief Reads and processes user input.
  *
- * This function will read user input from the standard input buffer.
- * If the user enters more than 256 characters, it will print an error
- * message to the standard output and re-prompt the user. The user
- * will also be re-prompted if they enter just a new line. The input string will
- * be null terminated and will be at most 256 characters including the null terminator.
- * It will be stored in the command strucutre. The function will also tokenize the
- * the string via a helper function. It will also set the background processing flag
- * via a helper fucniton
- *
- * @param Command *command structure containing the buffer to holding users input 
- *                 The function assumes that the inpu buffer has a length of 256 characters.
- *
- * @return Does not return anything direcly but stores the user input in the user_input
- * array in the command structure.
+ * Reads user input from stdin, ensuring it's within 256 characters.
+ * If input exceeds the limit or is empty, re-prompts the user. It exits if the user pressed
+ * CTRL+D to indicate end-of-file or read failed for non interrupt reasons.
+ * Input is tokenized via a helper function.
+ * 
+ * @param usr_inp Pointer to the USR_INP structure holding the input buffer
+ * 
+ * @return Does not return anythin but stores the processed user input and tokens in the usr_inp structure.
  */
+
 void get_usr_input(USR_INP *usr_inp) {
-  ssize_t count = 0;
+  size_t count = 0;
   char shell_prompt[] = "QuantumShell$$: ";
-  char error_msg[] ="Error: The input was longer than 256 characters\n";
   bool valid_input = FALSE;
   
   while(valid_input == FALSE) {
@@ -39,26 +34,51 @@ void get_usr_input(USR_INP *usr_inp) {
     print_string(shell_prompt);
     count = read(FD_STD_INP, usr_inp->usr_input, MAX_SIZE);
 
-
-    if (count == -1) {
-      continue;  
+    if (count < 1) {
+      handle_read_error(count);
     }
-    
-    if(usr_inp->usr_input[count -1] != '\n') {         /*User entered more than 256 characters*/
-      print_string(error_msg);
-      flush_std_input_buffer();
-    }else if(!is_string_empty(usr_inp->usr_input)) {    /*Check if user did not enter an empty line*/
-      valid_input = TRUE;
-    }
-    
+    valid_input = validate_input_and_null_terminate(usr_inp,count);
   }
-
-  usr_inp->usr_input[count - 1] = '\0';
-
-  string_tokenizer(usr_inp->usr_input,usr_inp->argv,&(usr_inp->num_tokens));
   
+  string_tokenizer(usr_inp->usr_input,usr_inp->argv,&(usr_inp->num_tokens));
 
 }
+
+
+/**
+ * @brief Validates user input and null-terminates it.
+ *
+ * Handles input validation for length and checks if the user pressed CTRL+D.
+ * If the input exceeds 256 characters, the buffer is flushed and an error is printed.
+ * Null-terminates the input and checks if it's not empty otherwise.
+ *
+ * @return Returns TRUE if valid, FALSE otherwise.
+ */
+static bool validate_input_and_null_terminate(USR_INP *usr_inp, size_t count) {
+    char error_msg[] = "Error: The input was longer than 256 characters\n";
+
+    if (usr_inp->usr_input[count - 1] != '\n' && count == 256) { //If input is less than 256 that means user pressed CTRL D which is valid
+        print_string(error_msg);
+        flush_std_input_buffer();
+        return FALSE;
+    }
+
+
+    // Null-terminate the input string
+    if (usr_inp->usr_input[count - 1] != '\n') { // Last character might not be '/n' if the user pressed CTRL D
+        usr_inp->usr_input[count] = '\0';
+        print_string("\n");                    // Since the user didnt enter a newline
+    } else {
+        usr_inp->usr_input[count - 1] = '\0';
+    }
+
+
+    // Check if the input was not an empty string
+    return !is_string_empty(usr_inp->usr_input);
+}
+
+
+
 
 
 /**
@@ -69,7 +89,7 @@ void get_usr_input(USR_INP *usr_inp) {
  *
  * @return This function does not return any value.
  */
-void flush_std_input_buffer(){
+static void flush_std_input_buffer() {
   
   size_t buff_size = 100;
   char temp_buff[buff_size];
@@ -91,6 +111,7 @@ void flush_std_input_buffer(){
   }
   
 }
+
 
 
 /**

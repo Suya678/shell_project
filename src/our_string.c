@@ -1,22 +1,17 @@
 #include "our_string.h"
 
+
 /**
- * @brief Prints a null terminated string.
+ * @brief Prints a null terminated string to the Standard OUTPUT
  *
  * @param to_print Null-terminated string to be printed.
  */
-void print_string(char *to_print ) {
+void print_string(char *to_print ) {  
+  int len =  get_string_len(to_print);
 
-  int count = 0;
-  char *temp = to_print;
-  
-  while(*temp != '\0') {
-    temp++;
-    count++;
+  while (write(FD_STD_OUT, to_print,len) == -1) { 
+    handle_write_error();
   }
-  
-  write(FD_STD_OUT, to_print, count);
- 
 }
 
 
@@ -118,8 +113,8 @@ void string_copy(char *source, char *destination, char delimiter) {
 /**
  * @brief Checks if the given string is empty.
  *
- * An empty string is defined as one with only consecutive whispace terminated by \n.
- * For ex : "      \n" is empty, so is "            \n"
+ * An empty string is defined as one with only consecutive whispace or '\t' terminated by '\0'.
+ * For ex : "      \0" is empty, so is "        \t    \0"
  * The function assumes the string ends eventually with a newline
  * @param string[] to be checked.
  * @return This function returns TRUE if the string is empty, otherwise false.
@@ -127,14 +122,15 @@ void string_copy(char *source, char *destination, char delimiter) {
 bool is_string_empty(char string[]) {
 
   char *str = string;
+  
+  while (*str != '\0') {
 
-  while (*str != '\n') {
-
-    if(*str != ' ') {
+    if(*str != ' ' && *str != '\t') {
       return FALSE;
     }
     str++;
   }
+
   return TRUE;
 }
 

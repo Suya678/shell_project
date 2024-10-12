@@ -5,45 +5,12 @@
 
 static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]);
 static void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]);
-
-static void search_and_replace_with_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
-                                  char spare_for_commands[MAX_ARGS][MAX_SIZE + PATH_MAX_SIZE],
-                                  Command *current_pipeline, int *spare_count);
-static void sig_int_handler(int sig);
-static void signal_child_handler(int sig);
-
-
-
-/**
- * @brief Helper function to search if a given pipeline command is in one of the paths in the "paths" array.
- *
- * This function searches through each path by appending the pipeline command to the each path and calling
- * stat which will return a 0 if the file exsists. If found, it replaces the pipeline's command with the appnded
- * version. If not found, it does nothing.
- *
- * @param paths Array of possible paths.
- * @param spare_for_commands Array to store updated commands with paths.
- * @param current_pipeline Pointer to the current pipeline's command.
- * @param spare_count Counter to track the number of spare commands.
- */
 static void search_and_append_executable_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
                                         char spare_for_commands[MAX_ARGS][MAX_SIZE + PATH_MAX_SIZE],
-                                        Command *current_pipeline, int *spare_count){
-   struct stat statbuf;
-   char temp[MAX_SIZE + PATH_MAX_SIZE];
+                                        Command *current_pipeline, int *spare_count);
 
-   for(int j = 0; paths[j][0] != '\0'; j++) { /* '\0' as the first character indicates that there are no more paths*/
-      string_copy(paths[j], temp, '\0');          
-      my_str_cat(current_pipeline->argv[0],temp);
-      if(stat(temp,&statbuf) == 0) {
-        string_copy(temp,spare_for_commands[*spare_count], '\0');
-        current_pipeline->argv[0] = spare_for_commands[(*spare_count)++];
-        break;
-      }
-    
-    }
-
-}
+static void sig_int_handler(int sig);
+static void signal_child_handler(int sig);
 
 
 
@@ -92,6 +59,88 @@ void resolve_command_path(JOB *job, char *envp[]){
 }
 
 
+/**
+ * @brief Sets up the sigaction struct 
+ *
+ * This function creates a sigfunction structure sa. 
+ * The handler attribute is assigned to the signal_child_handler function.
+ * sigemptyset allows for no signal interrupts to be masked.
+ * 
+ * @param None
+ * @return Does not return anything
+ */
+ void signal_child_setup(){
+  struct sigaction sa;
+  sa.sa_handler = signal_child_handler; //in cmd_runner.c
+  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+
+
+  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
+    perror("Could not install SIGCHLD handler");
+    exit(EXIT_FAILURE);;
+  }
+  
+}
+
+
+/**
+ * @brief Sets up signal handling for SIg INT signal 
+ *
+ * This function creates a sigfunction structure sa. 
+ * The handler attribute is assigned to the sig_int_handler function.
+ * sigemptyset allows for no signal interrupts to be masked.
+ * 
+ * @param None
+ * @return Does not return anything
+ */
+void signal_int_setup(){
+
+  struct sigaction sa;
+  sa.sa_handler = sig_int_handler; 
+  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
+  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+
+
+  if (sigaction(SIGINT, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
+    perror("Could not install SIGCHLD handler");
+    exit(EXIT_FAILURE);;
+  }
+
+
+}
+
+/**
+ * @brief Helper function to search if a given pipeline command is in one of the paths in the "paths" array.
+ *
+ * This function searches through each path by appending the pipeline command to the each path and calling
+ * stat which will return a 0 if the file exsists. If found, it replaces the pipeline's command with the appnded
+ * version. If not found, it does nothing.
+ *
+ * @param paths Array of possible paths.
+ * @param spare_for_commands Array to store updated commands with paths.
+ * @param current_pipeline Pointer to the current pipeline's command.
+ * @param spare_count Counter to track the number of spare commands.
+ */
+static void search_and_append_executable_paths(char paths[MAX_NUM_PATHS][PATH_MAX_SIZE],
+                                        char spare_for_commands[MAX_ARGS][MAX_SIZE + PATH_MAX_SIZE],
+                                        Command *current_pipeline, int *spare_count){
+   struct stat statbuf;
+   char temp[MAX_SIZE + PATH_MAX_SIZE];
+
+   for(int j = 0; paths[j][0] != '\0'; j++) { /* '\0' as the first character indicates that there are no more paths*/
+      string_copy(paths[j], temp, '\0');          
+      my_str_cat(current_pipeline->argv[0],temp);
+      if(stat(temp,&statbuf) == 0) {
+        string_copy(temp,spare_for_commands[*spare_count], '\0');
+        current_pipeline->argv[0] = spare_for_commands[(*spare_count)++];
+        break;
+      }
+    
+    }
+
+}
+
 
 
 
@@ -107,7 +156,6 @@ void resolve_command_path(JOB *job, char *envp[]){
  */
 static void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]) {
   char *to_path = NULL; 
-  char *default_path = "/bin/";
 
   for(int i = 0; envp[i] != NULL; i++)  {
     if(string_compare(envp[i], "PATH=", 5)) {
@@ -158,35 +206,6 @@ static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZ
 }
 
 
-
-
-
-
-
-/**
- * @brief Sets up the sigaction struct 
- *
- * This function creates a sigfunction structure sa. 
- * The handler attribute is assigned to the signal_child_handler function.
- * sigemptyset allows for no signal interrupts to be masked.
- * 
- * @param None
- * @return Does not return anything
- */
- void signal_child_setup(){
-  struct sigaction sa;
-  sa.sa_handler = signal_child_handler; //in cmd_runner.c
-  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
-  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
-
-
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
-    perror("COULD NOT INSTALL SIG BACKGROUND HANDLER: ");
-    return;
-  }
-  
-}
-
 /**
  * @brief Terminates zombie children
  *
@@ -200,35 +219,12 @@ static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZ
  */
 static void signal_child_handler(int sig){
   int status;
-  while(waitpid(-1, &status, WNOHANG) > 0);
-}
-
-
-/**
- * @brief Sets up signal handling for SIg INT signal 
- *
- * This function creates a sigfunction structure sa. 
- * The handler attribute is assigned to the sig_int_handler function.
- * sigemptyset allows for no signal interrupts to be masked.
- * 
- * @param None
- * @return Does not return anything
- */
-void signal_int_setup(){
-
-  struct sigaction sa;
-  sa.sa_handler = sig_int_handler; 
-  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
-  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
-
-
-  if (sigaction(SIGINT, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
-    perror("COULD NOT INSTALL SIG INT HANDLER: ");
-    return;
+  if(sig == SIGCHLD) { /*Redundant but otherwise compiler complains about unused parameters*/
+    while(waitpid(-1, &status, WNOHANG) > 0);
   }
 
-
 }
+
 
 
 /**
@@ -243,7 +239,9 @@ void signal_int_setup(){
  * @return Does not return anything
  */
 static void sig_int_handler(int sig){
-  print_string("\nQuantumShell$$: ");  
+  if(sig == SIGINT) { /*Redundant but otherwise compiler complains about unused parameters*/
+    print_string("\nQuantumShell$$: ");  
+  }
 }
 
 

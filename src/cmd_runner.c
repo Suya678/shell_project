@@ -13,8 +13,6 @@ static void _close(int fd);
 static void redirect_fd(int old_fd, int new_fd);
 static void redirect_fd(int old_fd, int new_fd);
 static void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]);
-static void signal_child_handler(int sig);
-
 
 
 /**
@@ -31,23 +29,28 @@ static void signal_child_handler(int sig);
 void run_job(JOB *job, char *envp[]) {
   int status;
   pid_t pid = fork();
-  if(pid == 0) {
-    signal(SIGINT, SIG_DFL);
 
+  if(pid == 0) {  
+    signal(SIGINT, SIG_DFL); // Reset the sig ignore signal so children can still be kileld
+    
+    if(job->num_stages > 1){
+      handle_multi_pipeline_job(job, envp);
+    } else {
+      handle_single_pipeline_job(job,envp);
+    }
+    while (wait(&status)> 0); 
+    exit(EXIT_SUCCESS);
 
-  if(job->num_stages > 1){
-    handle_multi_pipeline_job(job, envp);
-  } else {
-    handle_single_pipeline_job(job,envp);
   }
-  while (wait(&status)> 0); 
-  exit(EXIT_SUCCESS);
+  
+  if(pid == -1) {
+    handle_syscall_error("FORK FAILED IN RUN_JOB FROM parent"); /*Funciton never returns and shell exits*/
+  }
 
- }
   if(job->background == FALSE) {
     waitpid(pid,&status, 0); /*wait for the  processes to finish */
   }
-
+  
   
 }
 
@@ -71,7 +74,7 @@ static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
   int pipes[job->num_stages -1][2];
   
   
-  pipe(pipes[pipe_index]);
+  if(pipe(pipes[pipe_index]) == -1) handle_syscall_error("Failed to create Pipe in handle_multi_pipeline_job");
   
   if(initialize_file_descriptors(job, &input_fd, &output_fd) == FALSE) return;
  
@@ -138,7 +141,7 @@ static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd)
   if(job->infile_path != NULL) {
     *input_fd = open(job->infile_path,O_RDONLY);
     if(*input_fd == -1){
-      perror("Could not open infile: ");
+      handle_syscall_error("Could not open infile: ");
       return FALSE;
     }
   } else {
@@ -148,8 +151,7 @@ static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd)
   if(job->outfile_path != NULL) {
     *output_fd = open(job->outfile_path, O_CREAT | O_RDWR |  O_TRUNC, 0666);
     if(*output_fd == -1){
-      perror("Could not open outfile:");
-      return FALSE;
+      handle_syscall_error("Could not open outfile:");
     }
   } else {
     *output_fd = FD_STD_OUT;
@@ -194,15 +196,15 @@ static void _close(int fd) {
  */
 static void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]) {
   pid_t pid = fork();
-
+  
   if(pid == 0)
-  {
+    {
    signal(SIGINT, SIG_DFL);
-
-    if(input_fd != FD_STD_INP) {
+   
+   if(input_fd != FD_STD_INP) {
       redirect_fd(FD_STD_INP,input_fd);
     }
-
+    
     if(output_fd != FD_STD_OUT) {
       redirect_fd(FD_STD_OUT,output_fd);
     }
@@ -220,7 +222,7 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
     return;
   }
   
-
+  
 }
 
 /**
@@ -228,7 +230,7 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
  *
  * @param old_fd file descriptor to be replaced.
  * @param new_fd ile descriptor to be duplicated to old_fd.
-
+ 
  * @return Does not return anything
  */
 static void redirect_fd(int old_fd, int new_fd){
