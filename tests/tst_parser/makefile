@@ -1,18 +1,22 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -I$(HDR_DIR)
 
+SRC_DIR = ../../src
+HDR_DIR = ../../headers
+BUILD_DIR = .
+OBJ_FILES = tst_parser.o our_string.o parser.o error_handler.o
 
-tst_: tst_parser.o parser.o our_string.o
-	$(CC) $(CFLAGS) tst_parser.o parser.o our_string.o -o tst_parser
+tst_parser: $(OBJ_FILES)
+	$(CC) $(CFLAGS)  $^ -o $@
 
-tst_parser.o: tst_parser.c ../../headers/*
-	$(CC) $(CFLAGS) -c tst_parser.c -I../../headers -o tst_parser.o
+tst_parser.o: tst_parser.c $(HDR_DIR)/*
+	$(CC) $(CFLAGS) -c $< -o $@
 
-our_string.o: ../../src/our_string.c ../../headers/*
-	$(CC) $(CFLAGS) -c ../../src/our_string.c -I../../headers -o our_string.o
+our_string.o: $(SRC_DIR)/our_string.c $(HDR_DIR)/*
+	$(CC) $(CFLAGS) -c $< -o $@
 
-parser.o: ../../src/parser.c ../../headers/* 
-	$(CC) $(CFLAGS) -c ../../src/parser.c -I../../headers -o parser.o
-clean:
-	rm -f test_parser *.o
+parser.o: $(SRC_DIR)/parser.c $(HDR_DIR)/*
+	$(CC) $(CFLAGS) -c $< -o $@
 
+error_handler.o: $(SRC_DIR)/error_handler.c $(HDR_DIR)/*
+	$(CC) $(CFLAGS) -c $< -o $@

@@ -10,7 +10,7 @@ static void search_and_append_executable_paths(char paths[MAX_NUM_PATHS][PATH_MA
                                         Command *current_pipeline, int *spare_count);
 
 static void sig_int_handler(int sig);
-static void signal_child_handler(int sig);
+void signal_child_handler(int sig); /*Intentially left otherwise one of the test in tst_cmd_runner wont work*/
 
 
 
@@ -73,7 +73,7 @@ void resolve_command_path(JOB *job, char *envp[]){
   struct sigaction sa;
   sa.sa_handler = signal_child_handler; //in cmd_runner.c
   sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
-  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+  sa.sa_flags = SA_RESTART;     
 
 
   if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
@@ -99,11 +99,11 @@ void signal_int_setup(){
   struct sigaction sa;
   sa.sa_handler = sig_int_handler; 
   sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
-  sa.sa_flags = SA_RESTART;     // The read system call will otherwise fail during some background jobs
+  sa.sa_flags = SA_RESTART;         
 
 
   if (sigaction(SIGINT, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
-    perror("Could not install SIGCHLD handler");
+    perror("Could not install SIG INT handler");
     exit(EXIT_FAILURE);;
   }
 
@@ -217,7 +217,7 @@ static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZ
  * @param int sig - signal that triggered the handler
  * @return Does not return anything
  */
-static void signal_child_handler(int sig){
+void signal_child_handler(int sig){
   int status;
   if(sig == SIGCHLD) { /*Redundant but otherwise compiler complains about unused parameters*/
     while(waitpid(-1, &status, WNOHANG) > 0);
@@ -230,49 +230,65 @@ static void signal_child_handler(int sig){
 /**
  * @brief Prints a fresh prompt
  *
- * This function will check all children and 
- * while not blocking will deallocate the resources the
- * zombie is using by waiting on it. It will do this in a loop
- * until no more children are zombies.  
- *
+ * This will most likely be called when the user presse CTRL C when the prog is reading input.
+ * It helps simulate bash's behaviour of giving a new prompt message when thhis signal is sent
+ * 
  * @param int sig - signal that triggered the handler
  * @return Does not return anything
  */
 static void sig_int_handler(int sig){
-  if(sig == SIGINT) { /*Redundant but otherwise compiler complains about unused parameters*/
+
+  if(sig == SIGINT) {                   //Redundant but otherwise compiler complains about unused parameters
     print_string("\nQuantumShell$$: ");  
   }
 }
 
 
+/**
+ * @brief Built in cd command
+ *
+ * @return Does not return anything.
+ */
+
+void my_cd(JOB *job){
+
+char correct_usg[] = "Correct usage: cd <pathname>";
+
+if(job->num_stages > 1) {
+  print_string("cd: Too many stages, cannot add pipes to cd");
+  print_string(correct_usg);
+  return;
+}
+
+if(job->pipeline[0].argc > 2){
+  print_string("cd: Too many arguments");
+  print_string(correct_usg);
+  return;
+}
 
 
-bool _chdir(JOB *job){
-
-struct stat statbuf;
-
-
-if(job->num_stages > 1)
-  return FALSE;
+if(job->pipeline[0].argc < 2){
+  print_string("cd: Requires a path");
+  print_string(correct_usg);
+  return;
+}
 
 
-if(job->infile_path != NULL || job->infile_path != NULL)
-  return FALSE;
+if(job->infile_path != NULL || job->infile_path != NULL){
 
-if(job->pipeline[0].argc > 2 || job->pipeline[0].argc < 2)
-  return FALSE;
-
-if(stat(job->pipeline[0].argv[1],&statbuf) == 0) {
-  return TRUE;
-}  
-
-return FALSE;
+  print_string("cd: Cannot provide either an infile or an outfile");
+  print_string(correct_usg);
+  return;
+}
 
 
+if(chdir(job->pipeline[0].argv[1]) == -1) {
+  perror("QuantumShell$$: cd");
+}
 
 }
 
-  
+
 
 
 

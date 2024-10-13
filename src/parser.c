@@ -11,6 +11,8 @@ static void handle_input_redirection(JOB *job, bool *valid_input, unsigned int *
 static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter);
 static bool is_special_symbol(char *str);
 
+
+
 /**
  * @brief Reads and processes user input.
  *
@@ -36,6 +38,7 @@ void get_usr_input(USR_INP *usr_inp) {
 
     if (count < 1) {
       handle_read_error(count);
+      continue;
     }
     valid_input = validate_input_and_null_terminate(usr_inp,count);
   }
@@ -101,6 +104,7 @@ static void flush_std_input_buffer() {
     
     /*Exit if read failed*/
     if (count == -1) {
+      handle_read_error(count);
       write(FD_STD_ERR, "Error reading input in read_usr_inp function\n", 46);
       _exit(1);
     }

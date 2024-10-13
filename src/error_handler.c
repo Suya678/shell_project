@@ -13,6 +13,8 @@
  * @return This function does not return any value.
  */
 void handle_read_error(size_t count) {
+
+
   print_string("\n");
   if(errno == EINTR) {
     return;
@@ -20,7 +22,7 @@ void handle_read_error(size_t count) {
   if(count  == 0) {
     exit(EXIT_SUCCESS); /*User pressed ctrl d to exit*/
   } else {
-    perror("ERROR COULD NOT READ IN get_usr_input"); /*Something else has gone wrong so exit*/
+    perror("ERROR COULD NOT READ IN get_usr_input or flush_std_input_buffer"); /*Something else has gone wrong so exit*/
     exit(EXIT_FAILURE);
 
   }

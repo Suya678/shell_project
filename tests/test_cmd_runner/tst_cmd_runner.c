@@ -1,7 +1,10 @@
 #include <stdio.h>
 #include "cmd_runner.h"
 #include "parser.h"
-void signal_child_handler();
+#include "add_features.h"
+
+void signal_child_handler(int sig);
+
 /*
 void CASE_SINGLE_PIPELINE_JOB();
 void CASE_MULTI_PIPELINE_JOBS();
@@ -271,7 +274,7 @@ void CASE_ZOMBIE_KILLER_FAIL(){
 
 void CASE_ZOMBIE_KILLER_SUCCESS(){
   struct sigaction sa;
-  sa.sa_handler = signal_child_handler; //in cmd_runner.c
+  sa.sa_handler = signal_child_handler; //in add_features.c
   sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
 
   if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated

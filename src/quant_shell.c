@@ -26,11 +26,16 @@ int main(int argc, char *argv[], char *envp[]) {
     if(validate_and_parse_job(&job)){
      resolve_command_path(&job, envp);
       if(string_compare("exit", job.pipeline[0].argv[0], 0)) break;
+      
+      if(string_compare("cd", job.pipeline[0].argv[0], 0)){
+        my_cd(&job);
+        continue;
+      }
+
       run_job(&job, NULL);
     }
    
   }
-
 
   return 0;
 }

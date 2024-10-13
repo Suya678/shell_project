@@ -8,8 +8,9 @@
 
 static void handle_multi_pipeline_job(JOB *job, char *envp[]);
 static void handle_single_pipeline_job(JOB *job, char *envp[]);
-static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd);
-static void _close(int fd);
+static void initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd);
+static void my_close(int fd, char *err_msg);
+static void my_pipe(int pipe_fd[2], char *err_msg);
 static void redirect_fd(int old_fd, int new_fd);
 static void redirect_fd(int old_fd, int new_fd);
 static void run_command(Command *command, int input_fd, int output_fd, int fd_close, char *envp[]);
@@ -31,7 +32,7 @@ void run_job(JOB *job, char *envp[]) {
   pid_t pid = fork();
 
   if(pid == 0) {  
-    signal(SIGINT, SIG_DFL); // Reset the sig ignore signal so children can still be kileld
+    signal(SIGINT, SIG_DFL); // Reset the sig ignore signal so children can still be interrupted
     
     if(job->num_stages > 1){
       handle_multi_pipeline_job(job, envp);
@@ -69,37 +70,42 @@ void run_job(JOB *job, char *envp[]) {
  */
 static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
   int input_fd, output_fd;
+  char err_close_pipe[] = "Could not close pipe in handle_multiple_pipeline_job";
+  char err_open_pipe[]  = "Could not open pipe in handle_multiple_pipeline_job"; 
   unsigned int current_stage = 0;
   unsigned int pipe_index = 0;
   int pipes[job->num_stages -1][2];
   
   
-  if(pipe(pipes[pipe_index]) == -1) handle_syscall_error("Failed to create Pipe in handle_multi_pipeline_job");
   
-  if(initialize_file_descriptors(job, &input_fd, &output_fd) == FALSE) return;
+  my_pipe(pipes[pipe_index], err_open_pipe );
+
+
+  initialize_file_descriptors(job, &input_fd, &output_fd);
  
  /* The input for the first stage comes from either the infile or stdin, never from a pipe */
  run_command(&job->pipeline[current_stage++],input_fd, pipes[pipe_index][PIPE_WRITE_END], pipes[pipe_index][PIPE_READ_END], envp);
 
   /* Close the input file if input was redirected */
-  if(input_fd != FD_STD_INP) _close(input_fd);
+  if(input_fd != FD_STD_INP) my_close(input_fd, "Could not close infile");
 
-  _close(pipes[pipe_index++][PIPE_WRITE_END]); /*Close after writing to pipe */
+  my_close(pipes[pipe_index++][PIPE_WRITE_END], err_close_pipe); /*Close after writing to pipe */
 
   /*Middle stages read from one pipe and write to the next */
   while(current_stage < job->num_stages -1) {
-    pipe(pipes[pipe_index]);
+    
+    my_pipe(pipes[pipe_index], err_open_pipe);
     run_command(&job->pipeline[current_stage++], pipes[pipe_index - 1][PIPE_READ_END], pipes[pipe_index][PIPE_WRITE_END], pipes[pipe_index][PIPE_READ_END], envp);
-    _close(pipes[pipe_index -1][PIPE_READ_END]); 
-    _close(pipes[pipe_index++][PIPE_WRITE_END]);
+    my_close(pipes[pipe_index -1][PIPE_READ_END],err_close_pipe ); 
+    my_close(pipes[pipe_index++][PIPE_WRITE_END], err_close_pipe);
+
   }    
 
   /*Handle last stage, read from the pipe and output to STD out or a file*/
   run_command(&job->pipeline[current_stage], pipes[pipe_index - 1][PIPE_READ_END], output_fd, NO_FD_TO_CLOSE, envp);
-  _close(pipes[pipe_index-1][PIPE_READ_END]);
+  my_close(pipes[pipe_index-1][PIPE_READ_END],err_close_pipe);
 
-  if(output_fd != FD_STD_OUT) _close(output_fd);
-
+  if(output_fd != FD_STD_OUT) my_close(output_fd, "Could not close outfile");
 }
 
 /**
@@ -115,12 +121,12 @@ static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
 static void handle_single_pipeline_job(JOB *job, char *envp[]) {
   int input_fd, output_fd;
   
-  if(initialize_file_descriptors(job, &input_fd, &output_fd) == FALSE) return;
+  initialize_file_descriptors(job, &input_fd, &output_fd);
 
   run_command(&job->pipeline[0],input_fd, output_fd, NO_FD_TO_CLOSE, envp);
 
-  if(input_fd != FD_STD_INP) _close(input_fd);
-  if(output_fd != FD_STD_OUT) _close(output_fd);
+  if(input_fd != FD_STD_INP)  my_close(input_fd, "Could not close infile");
+  if(output_fd != FD_STD_OUT) my_close(output_fd, "Could not close outfile");
 
 }
 
@@ -135,14 +141,13 @@ static void handle_single_pipeline_job(JOB *job, char *envp[]) {
  * @param input_fd pointer to the input file descriptor to be initialized.
  * @param output_fd pointer to the output file descriptor to be initialized.
  * 
- * @return Returns TRUE on success; otherwise, FALSE if a file could not be opened.
+ * @return Does not return anything
  */
-static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd) {
+static void initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd) {
   if(job->infile_path != NULL) {
     *input_fd = open(job->infile_path,O_RDONLY);
     if(*input_fd == -1){
       handle_syscall_error("Could not open infile: ");
-      return FALSE;
     }
   } else {
     *input_fd = FD_STD_INP;
@@ -156,24 +161,45 @@ static bool initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd)
   } else {
     *output_fd = FD_STD_OUT;
   }
-  
-  return TRUE;
-  
+    
 }
 
 
 /**
- * @brief Wrapper for the close system call.Closes the file descriptor
- *        and prints an error message if it fails.
+ * @brief Wrapper for the close system call.Closes the file descriptor and exit using a helper function if it fails
  *
  * @param fd File descripter to be closed
+ * @param fd Error message to display in case of failure
  *
  * @return Does not return anything
  */
-static void _close(int fd) {
-    if (close(fd) == -1) perror("Error closing file descriptor");
+static void my_close(int fd, char *err_msg) {
+
+    if (close(fd) == -1) {
+      handle_syscall_error(err_msg);
+    }
+
 }
 
+
+
+/**
+ * @brief Wrapper for pipe system call. 
+ * 
+ * Calls pipe, if it fails, it calls a helper which will exit and print the error message
+ *
+ * @param pipe_fd Array of two integers for pipe file descriptors (read/write)
+ * @param err_msg Error message to display in case of failure
+ *
+ * @return Does not return anything
+ */
+
+static void my_pipe(int pipe_fd[2], char *err_msg){
+    if (pipe(pipe_fd) == -1) {
+      handle_syscall_error(err_msg);
+    }
+
+}
 
 /**
  * @brief The function will run a command from the command structure
@@ -199,7 +225,6 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
   
   if(pid == 0)
     {
-   signal(SIGINT, SIG_DFL);
    
    if(input_fd != FD_STD_INP) {
       redirect_fd(FD_STD_INP,input_fd);
@@ -210,19 +235,16 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
     }
     
     if(fd_close != -1) {
-      _close(fd_close);
+      my_close(fd_close, "Could not close fd in run_command");
     }
     
     execve(command->argv[0], command->argv, envp);
-    perror("Error running process");    
-    _exit(-1);
-    
-  } else if(pid == -1){
-    perror("Fork failed in run command");    
-    return;
+    handle_syscall_error("Execve failed");
+
+  } 
+  if(pid == -1) {
+    handle_syscall_error("FORK FAILED IN run_command"); 
   }
-  
-  
 }
 
 /**
@@ -235,12 +257,11 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
  */
 static void redirect_fd(int old_fd, int new_fd){
   if(dup2(new_fd,old_fd) == -1) {
-    perror("Dup2 in redirect_fd Failed");
-    exit(-1);
+    handle_syscall_error("Dup2 in redirect_fd Failed");
   }
   
-  if(close(new_fd) == -1){
-    perror("Close in redirect_fd Failed");
-    exit(-1);
-  }
+  my_close(new_fd,"Close in redirect_fd failed");
+  
 }
+
+
