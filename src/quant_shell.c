@@ -14,6 +14,8 @@ int main(int argc, char *argv[], char *envp[]) {
   /* Since these are unsed in the rest of the code, we do this to supress the compiler error*/
   (void)argc; (void)argv;
 
+
+
   JOB job;
   signal_child_setup();   /*Setup proper backgorund processing*/
   
@@ -33,6 +35,9 @@ int main(int argc, char *argv[], char *envp[]) {
       }
 
       run_job(&job, NULL);
+    } else {
+      print_string("Correct syntax:\nPipeline [< token] [> token] [&]\nPipeline → Command [| Pipeline]\n");
+      print_string("Command → Args\nArgs → token [Args] . Anything in [] is optional\n");
     }
    
   }

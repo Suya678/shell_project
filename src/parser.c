@@ -195,8 +195,9 @@ bool validate_and_parse_job(JOB *job) {
   job->num_stages = 0;
   unsigned int token_counter = 0;
   
-  /*We are guarnteed at least one token and it must start with an non special symbol*/
+  /*We are guaranteed at least one token and it must start with an non special symbol*/
   if(is_special_symbol(job->usr_input.argv[token_counter])){
+    print_string("Quantum_Shell$$: Cannot start with a special symbol(&, <, >, |)\n");
     return FALSE;
   }
   read_pipeline(job, &valid_input, &token_counter);
@@ -279,6 +280,7 @@ static void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter
 
   if(job->usr_input.argv[*token_counter] == NULL ||
     is_special_symbol(job->usr_input.argv[*token_counter]) == TRUE) {
+    print_string("Quantum_Shell$$: Expected a command after '|'\n");
     *valid_input = FALSE;
   } else {
     read_pipeline(job,valid_input,token_counter);
@@ -306,6 +308,7 @@ static void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *
 
   // There cannot be ay more tokens after '&'
   if (job->usr_input.argv[*token_counter] != NULL){
+    print_string("Quantum_Shell$$: No more tokens after '&'\n");
     *valid_input = FALSE;
   }
 }
@@ -327,11 +330,12 @@ static void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *
 
 static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int *token_counter){
   
-  (*token_counter)++; // Consume the '<' token
+  (*token_counter)++; // Consume the '>' token
 
-  // Check if the user has provided a infile path
+  // Check if the user has provided a outfile path
   if(job->usr_input.argv[*token_counter] == NULL ||
      is_special_symbol(job->usr_input.argv[*token_counter]) == TRUE) {
+      print_string("Quantum_Shell$$: Expected an outfile path after '>'\n");
       *valid_input = FALSE;
       return;
   } 
@@ -347,6 +351,7 @@ static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int 
     if(string_compare(job->usr_input.argv[*token_counter], "&", 0)) {
       handle_background_symbol(job,valid_input,token_counter);
     } else {
+      print_string("Quantum_Shell$$: Expected '&' or end of the command after outfile path\n");
       *valid_input = FALSE;
     }
   }
@@ -375,6 +380,7 @@ static  void handle_input_redirection(JOB *job, bool *valid_input, unsigned int 
 
   //Make sure next token is not NULL or a special symbol as we need an input path
   if(job->usr_input.argv[*token_counter] == NULL || is_special_symbol(job->usr_input.argv[*token_counter]) == TRUE) {
+      print_string("Quantum_Shell$$: Expected an infile path after '<'\n");
     *valid_input = FALSE;
     return;
   }
@@ -391,6 +397,7 @@ static  void handle_input_redirection(JOB *job, bool *valid_input, unsigned int 
     } else if(string_compare(job->usr_input.argv[*token_counter],">",0)){
       handle_output_redirection(job,valid_input,token_counter);
     } else {
+      print_string("Quantum_Shell$$: Expected '&', '>', or end the of command after infile path\n");
       *valid_input = FALSE; // Next token cant be the beginning of a new pipeline
     }
     

@@ -239,7 +239,7 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
     }
     
     execve(command->argv[0], command->argv, envp);
-    handle_syscall_error("Execve failed");
+    handle_syscall_error(command->argv[0]);
 
   } 
   if(pid == -1) {
