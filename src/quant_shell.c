@@ -6,12 +6,11 @@
 #include "add_features.h"
 
 
-
 int main(int argc, char *argv[], char *envp[]) {
 
 
   /*-Werror is turned on */
-  /* Since these are unused in the rest of the code, we do this to suppress the compiler error*/
+  /* Since these are unused in the rest of the code, we do this to suppress the compiler errors*/
   (void)argc; (void)argv;
 
 
@@ -21,9 +20,9 @@ int main(int argc, char *argv[], char *envp[]) {
   
   while(1) {
 
-    signal_int_setup(); /*For custom handling of ctrl c when taking input*/
+    signal_int_setup();             // For custom handling of ctrl c when taking input
     get_usr_input(&job.usr_input);
-    signal(SIGINT,SIG_IGN);       /*Dont want to be interrupted in the process of creating a job*/
+    signal(SIGINT,SIG_IGN);         // Dont want to be interrupted in the process of creating a job
 
     if(validate_and_parse_job(&job)){
      resolve_command_path(&job, envp);

@@ -16,16 +16,18 @@ void signal_child_handler(int sig); /*Intentially left otherwise one of the test
 
 
 /**
- * @brief Resolves the command paths for each stage in the pipeline
+ * @brief Resolves the command paths for each stage in the job
  *
  * This function checks if the command provided in each stage of the pipeline is an absolute 
  * or relative path. If it is not, the function searches through the environment paths 
- * to resolve the command's executable and appends the correct path to the command. 
+ * to resolve the command's executable path. It uses a helper function to find if the exectulate
+ * exists in one of the paths in path envp variable. If it exists, the helper functions prepends
+ * the path to exec. For ex: "ls"-> "/bin/ls". It does nothing if it cant find the exec 
  *
  * When this function is called first, it will set the 'paths' array using a helper function.
  * Subsequent calls will not do this.The spare_for_commands array is used as a buffer to 
  * store updated versions of command arguments since the buffer pointed to by current pipeline
- * cannot accomade extra characters.
+ * cannot accommodate extra characters.
  *
  * @param job Pointer to the job containing the pipeline stages.
  * @param envp Array of environment variables used to extract the executable paths.
@@ -113,8 +115,8 @@ void signal_int_setup(){
 /**
  * @brief Helper function to search if a given pipeline command is in one of the paths in the "paths" array.
  *
- * This function searches through each path by appending the pipeline command to the each path and calling
- * stat which will return a 0 if the file exsists. If found, it replaces the pipeline's command with the appnded
+ * This function searches through each path by appending the pipeline command to  each path and calling
+ * stat which will return a 0 if the file exists. If found, it replaces the pipeline's command with the appended
  * version. If not found, it does nothing.
  *
  * @param paths Array of possible paths.
@@ -147,7 +149,7 @@ static void search_and_append_executable_paths(char paths[MAX_NUM_PATHS][PATH_MA
 /**
  * @brief Helper function to resolve command for extracting PATH environment variable from `envp` and parsing it into individual paths.
  *
- * This function earches through the environment variables array `envp` to find the `PATH` variable.
+ * This function searches through the environment variables array `envp` to find the `PATH` variable.
  * Once found, it extracts its value (excluding the `"PATH="` prefix) and passes it to the helper function
  * `parse_path_var` to split it into individual paths, which are stored in the `paths` array.
  *
@@ -176,7 +178,7 @@ static void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_
  * using ':' as a delimiter and stores them in 'paths' array. It also appends a '/' at the end
  * of each path.
  *
- * @param to_path The string containg all the paths to be parsed
+ * @param to_path The string containing all the paths to be parsed
  * @param paths Array to store the individual parsed paths
  */
 static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]){
@@ -249,7 +251,6 @@ static void sig_int_handler(int sig){
  *
  * @return Does not return anything.
  */
-
 void my_cd(JOB *job){
 
 char correct_usg[] = "Correct usage: cd <pathname>";

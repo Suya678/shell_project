@@ -8,12 +8,11 @@
  * can still recover. But if it fails, due to:
  * 
  * 1. The user pressing CTRL D: This means the user wants to exit
- * 2. Any other reason: THe shell shouuld not recover and exit with a failure exit code.
+ * 2. Any other reason: THe shell should not recover and exit with a failure exit code.
  *
  * @return This function does not return any value.
  */
 void handle_read_error(size_t count) {
-
 
   print_string("\n");
   if(errno == EINTR) {
@@ -31,10 +30,10 @@ void handle_read_error(size_t count) {
 
 
 /**
- * @brief Helper function to for print_string for handling errors with write system call
+ * @brief Helper function to for print_string for handling errors with the write system call
  *
- * If the write system call fails to a interruption by a signal, the shell program
- * can still recover. But if it fails, due to any other reason, the shell will exit.
+ * If the write system call fails due to a interruption by a signal, the process
+ * can still recover. But if it fails, due to any other reason, the process will exit.
  * @return This function does not return any value.
  */
 void handle_write_error() {
@@ -60,4 +59,4 @@ void handle_syscall_error(char *str) {
     exit(EXIT_FAILURE);
 }
 
-void handle_pipe_error();
+

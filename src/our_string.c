@@ -19,7 +19,7 @@ void print_string(char *to_print ) {
  *  @brief Compares two strings up to a specified number of characters or until the end.
  *
  *
- * Compares str1 and str2 character by character. They must be null termiated.
+ * Compares str1 and str2 character by character. They must be null terminated.
  * If num_to_compare is bigger than 0, it compares up to that many characters.
  * If num_to_compare is zero or negative, it compares until the end of either string.
  *
@@ -61,10 +61,10 @@ bool string_compare(char *str1, char *str2, int num_to_compare){
 
 
 /**
- *  @brief Concatinates the source to the destination array
+ *  @brief Concatenates the source to the destination array
  *
  *
- * Does not do bounds checkign so user has to make sure the destination is big enough to accomodate source
+ * Does not do bounds checking so user has to make sure the destination is big enough to accommodate source
  *
  * @param destination pointer to the string to append to 
  * @param source pointer to the string being appended to destination
@@ -92,7 +92,7 @@ void my_str_cat(char *source, char *destination){
 /**
  *  @brief Copies characters from the source string into the destination string until the delimiter or null is encountered
 *
- * Does not do bounds checking so user has to make sure the destination is big enough to accomodate source
+ * Does not do bounds checking so user has to make sure the destination is big enough to accommodate source
  *
  * @param destination Pointer to the string being copied to.
  * @param source Pinter to the string being copied to destination.
@@ -113,7 +113,7 @@ void string_copy(char *source, char *destination, char delimiter) {
 /**
  * @brief Checks if the given string is empty.
  *
- * An empty string is defined as one with only consecutive whispace or '\t' terminated by '\0'.
+ * An empty string is defined as one with only consecutive whitespace or '\t' terminated by '\0'.
  * For ex : "      \0" is empty, so is "        \t    \0"
  * The function assumes the string ends eventually with a newline
  * @param string[] to be checked.
@@ -135,7 +135,7 @@ bool is_string_empty(char string[]) {
 }
 
 /**
- * @brief Returns the lenght of a null terminated string including the null terminator
+ * @brief Returns the length of a null terminated string including the null terminator
  *
  * @param str String whose length is being checked
  */

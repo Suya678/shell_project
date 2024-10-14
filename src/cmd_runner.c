@@ -20,7 +20,7 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
  * @brief Handles running of a single job 
  * 
  * This function runs a job using helper functions. It also decides to
- * wait for child processes to finished based on whether the background
+ * wait for child processes to finish based on whether the background
  * property in the job struc is false or true. 
  * 
  * @param job pointer to the JOB structure containing the pipeline stages.
@@ -45,11 +45,11 @@ void run_job(JOB *job, char *envp[]) {
   }
   
   if(pid == -1) {
-    handle_syscall_error("FORK FAILED IN RUN_JOB FROM parent"); /*Funciton never returns and shell exits*/
+    handle_syscall_error("FORK FAILED IN RUN_JOB FROM parent"); //Function never returns and shell exits
   }
 
   if(job->background == FALSE) {
-    waitpid(pid,&status, 0); /*wait for the  processes to finish */
+    waitpid(pid,&status, 0); 
   }
   
   
@@ -64,6 +64,8 @@ void run_job(JOB *job, char *envp[]) {
  * stage, output is directed to stdout or a file. Intermediate stages transfer data 
  * between pipes.
  * 
+ * Uses bit toggling to switch between 2 pipes, as 2 pipes are needed at most for all jobs.
+ * 
  * @param job pointer to the JOB structure containing the pipeline stages.
  * 
  * @return Does not return anything.
@@ -74,7 +76,7 @@ static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
   char err_open_pipe[]  = "Could not open pipe in handle_multiple_pipeline_job"; 
   unsigned int current_stage = 0;
   unsigned int pipe_index = 0;
-  int pipes[job->num_stages -1][2];
+  int pipes[2][2];
   
   
   
@@ -89,21 +91,20 @@ static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
   /* Close the input file if input was redirected */
   if(input_fd != FD_STD_INP) my_close(input_fd, "Could not close infile");
 
-  my_close(pipes[pipe_index++][PIPE_WRITE_END], err_close_pipe); /*Close after writing to pipe */
+  my_close(pipes[pipe_index][PIPE_WRITE_END], err_close_pipe); /*Close after writing to pipe */
 
   /*Middle stages read from one pipe and write to the next */
   while(current_stage < job->num_stages -1) {
-    
+    pipe_index ^= 1;
     my_pipe(pipes[pipe_index], err_open_pipe);
-    run_command(&job->pipeline[current_stage++], pipes[pipe_index - 1][PIPE_READ_END], pipes[pipe_index][PIPE_WRITE_END], pipes[pipe_index][PIPE_READ_END], envp);
-    my_close(pipes[pipe_index -1][PIPE_READ_END],err_close_pipe ); 
-    my_close(pipes[pipe_index++][PIPE_WRITE_END], err_close_pipe);
+    run_command(&job->pipeline[current_stage++], pipes[pipe_index ^ 1][PIPE_READ_END], pipes[pipe_index][PIPE_WRITE_END], pipes[pipe_index][PIPE_READ_END], envp);
+    my_close(pipes[pipe_index  ^ 1][PIPE_READ_END],err_close_pipe ); 
+    my_close(pipes[pipe_index][PIPE_WRITE_END], err_close_pipe);
 
   }    
 
-  /*Handle last stage, read from the pipe and output to STD out or a file*/
-  run_command(&job->pipeline[current_stage], pipes[pipe_index - 1][PIPE_READ_END], output_fd, NO_FD_TO_CLOSE, envp);
-  my_close(pipes[pipe_index-1][PIPE_READ_END],err_close_pipe);
+  run_command(&job->pipeline[current_stage], pipes[pipe_index][PIPE_READ_END], output_fd, NO_FD_TO_CLOSE, envp);
+  my_close(pipes[pipe_index][PIPE_READ_END],err_close_pipe);
 
   if(output_fd != FD_STD_OUT) my_close(output_fd, "Could not close outfile");
 }
@@ -112,7 +113,7 @@ static void handle_multi_pipeline_job(JOB *job, char *envp[]) {
  * @brief Handles running a job a with a single pipeline 
  * 
  * This function first initializes the file descriptors based on whether
- * the input is to read from a file and whether output is to redirected to a file.
+ * the input is to be read from a file and whether the output is to redirected to a file.
  * It then uses a helper function which will create a child process to run this command.
 
  * @param job pointer to the JOB structure containing pipeline and file paths.
@@ -147,7 +148,7 @@ static void initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd)
   if(job->infile_path != NULL) {
     *input_fd = open(job->infile_path,O_RDONLY);
     if(*input_fd == -1){
-      handle_syscall_error("Could not open infile: ");
+      handle_syscall_error("Could not open infile");
     }
   } else {
     *input_fd = FD_STD_INP;
@@ -156,7 +157,7 @@ static void initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd)
   if(job->outfile_path != NULL) {
     *output_fd = open(job->outfile_path, O_CREAT | O_RDWR |  O_TRUNC, 0666);
     if(*output_fd == -1){
-      handle_syscall_error("Could not open outfile:");
+      handle_syscall_error("Could not open outfile");
     }
   } else {
     *output_fd = FD_STD_OUT;
@@ -168,7 +169,7 @@ static void initialize_file_descriptors(JOB *job, int *input_fd, int *output_fd)
 /**
  * @brief Wrapper for the close system call.Closes the file descriptor and exit using a helper function if it fails
  *
- * @param fd File descripter to be closed
+ * @param fd File descriptor to be closed
  * @param fd Error message to display in case of failure
  *
  * @return Does not return anything
@@ -259,7 +260,6 @@ static void redirect_fd(int old_fd, int new_fd){
   if(dup2(new_fd,old_fd) == -1) {
     handle_syscall_error("Dup2 in redirect_fd Failed");
   }
-  
   my_close(new_fd,"Close in redirect_fd failed");
   
 }
