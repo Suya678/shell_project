@@ -1,11 +1,11 @@
 # Quantum Shell - A basic shell by Juan and Depanshu
 Quantum Shell is a very basic shell made in C. It has the following functionalities:
-- n stage pipelining
-- I/O redirection
-- Command Search PAthways - Don't have to type in the exact path of the command
-- Built in cd command
-- Basic Signal handling: Ctrl c for not terminating and SIGCHILD for proper background processing
-
+- N-stage pipelining: Supports chaining multiple commands using pipes (|)
+- I/O redirection: Supports Input(<) and Output(>) redirection
+- Command search pathways:  Searches system paths for commands (e.g., ls -l works), but arguments like file paths still need to be fully specified (e.g., ls /path/to/some_file)
+- Built in cd command: Allows changing of directories
+- Basic Signal handling: Ctrl C is ignored for the current shell process. SIGCHLD for proper background process and cleanup.
+ 
 ## Installation
 The build directory already has the executable - quantum_shell. Otherwise, run the makefile
 
