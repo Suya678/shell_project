@@ -11,19 +11,19 @@ int main(int argc, char *argv[], char *envp[]) {
 
 
   /*-Werror is turned on */
-  /* Since these are unsed in the rest of the code, we do this to supress the compiler error*/
+  /* Since these are unused in the rest of the code, we do this to suppress the compiler error*/
   (void)argc; (void)argv;
 
 
 
   JOB job;
-  signal_child_setup();   /*Setup proper backgorund processing*/
+  signal_child_setup();   /*Setup proper background processing*/
   
   while(1) {
 
     signal_int_setup(); /*For custom handling of ctrl c when taking input*/
     get_usr_input(&job.usr_input);
-    signal(SIGINT,SIG_IGN);       /*Dont want to be interruped in the process of creating a job*/
+    signal(SIGINT,SIG_IGN);       /*Dont want to be interrupted in the process of creating a job*/
 
     if(validate_and_parse_job(&job)){
      resolve_command_path(&job, envp);

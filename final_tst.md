@@ -18,8 +18,7 @@
 | --- | --- | --- | --- | --- |
 | One Stage Pipeline | ls  | Lists the contents of the current directory | Same as expected | Pass |
 | Two-stage Pipeline | cat headers/cmd\_runner.h \| grep #include | Filters lines containing '#include' | Same as expected | Pass |
-| Three stage Pipeline | ls headers \| grep .c \| sort | Lists, filters, and sorts files ending with '.c'. | Same as expected | Pass |
-| Three stage Pipeline | ls headers \| grep .c \| sort | Lists, filters, and sorts files ending with '.c'. | Same as expected | Pass |
+| Three stage Pipeline | ls src \| grep .c \| sort | Lists, filters, and sorts files ending with '.c'. | Same as expected | Pass |
 | Output Redirection | ls > out.txt | Redirects the output of ls to "output.txt" | Same as expected | Pass |
 | Input Redirection | grep #include < headers/cmd\_runner.h | Filters lines containing '#include' in "cmd\_runner.h" | Same as expected | Pass |
 | Output Redirection with a multi Pipeline | ls \| sort \| wc > out.txt | List the files in the current directory, sort them, count the number of words, and outputs to "out.txt" | Same as expected| Pass |
@@ -31,13 +30,13 @@
 ### Rejecting Invalid Input
 | Test Case | Command | Expected Behaviour | Actual | Result |
 | --- | --- | --- | --- | --- |
-| Input longer than 256 character | Just enter a string longer than 256 | Displas an eror | Same as expected | Pass |
-| Begins with special sybol | enter: '&', '<', '>' or '\|' ex: \| ls | Display an eror | Same as expected | Pass |
+| Input longer than 256 character | Just enter a string longer than 256 characters | Displays an error | Same as expected | Pass |
+| Begins with special symbol | enter: '&', '<', '>' or '\|' ex: \| ls | Display an error | Same as expected | Pass |
 | Missing Input File | 'ls <' | Displays an error | Same as expected | Pass |
 | Missing Output File | 'ls >' | Displays an error | Same as expected | Pass |
-| Input File Provided, Output File Missing | 'ls < inp.txt > | Displas an error | Same as expected | Pass |
-| Extra token after background | sleep 10 & ls | Dsiplas an error | Same as expected| Pass |  
-| Multi pipeline but missing command after a \| sysmbol | ex: "ls \|", "cat t.txt \| sort \|" or "cat t.txt \| sort \| unq \|" | Displays an error | Same as expected | Pass |  
+| Input File Provided, Output File Missing | 'ls < inp.txt > | Displays an error | Same as expected | Pass |
+| Extra token after background | sleep 10 & ls | Displays an error | Same as expected| Pass |  
+| Multi pipeline but missing command after a \| symbol | ex: "ls \|", "cat t.txt \| sort \|" or "cat t.txt \| sort \| unq \|" | Displays an error | Same as expected | Pass |  
 | Multi pipeline with a missing output file | ls \| sort \| grep headers > | Displays an error | Same as expected |   Pass  |
 | Multi pipeline with a missing input file | grep #include \| sort < | Displays an error | Same as expected |  Pass   |
 
@@ -45,10 +44,10 @@
 |                  Test Case                   |      Command      |              Expected Behaviour               |      Actual       | Result |
 |----------------------------------------------|-------------------|-----------------------------------------------|-------------------|--------|
 | cd: change to parent directory               | cd ..             | Changes the working directory to parent       |  Same as expected | Pass   |
-| cd: change to given absolute path            | cd /usr/local     | Changes the working directory to `/usr/bin` | Same as expected  | Pass   |
-| cd: change to given relative path            | cd ./headers      | Changes the working directory to `./headers`  | Same as expected  | Pass   |
-| cd : change to non-existent path             | cd ./random       | Displays an error message                     | Same as expected  | Pass   |
-| cd: change to a directory without permission | in home: cd admin | Displays an error message  | Same as expected | Pass |
+| cd: change to the given absolute path            | cd /usr/local     | Changes the working directory to `/usr/bin` | Same as expected  | Pass   |
+| cd: change to the given relative path            | cd ./headers      | Changes the working directory to `./headers`  | Same as expected  | Pass   |
+| cd: change to the non-existent path             | cd ./random       | Displays an error message                     | Same as expected  | Pass   |
+| cd: change to a the directory without permission | in home: cd admin | Displays an error message  | Same as expected | Pass |
 | exit:exits the shell      | exit   | Exits the shell        | Same as expected   | Pass    |
 
 ### SIGINT(Ctrl C) and CTRL D behavior
