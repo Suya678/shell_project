@@ -5,29 +5,22 @@
 
 void signal_child_handler(int sig);
 
-/*
+
 void CASE_SINGLE_PIPELINE_JOB();
 void CASE_MULTI_PIPELINE_JOBS();
-void CASE_BACKGROUND_JOBS();
 void CASE_ERROR_CASES();
 void CASE_REDIRECTION_ERRORS();
-*/
-void CASE_ZOMBIE_KILLER_FAIL();
-void CASE_ZOMBIE_KILLER_SUCCESS();
 
 int main() {
 
   printf("TESTING COMMAND RUNNER FUNCTIONALITY\nPress enter to continue\n");
   getchar();
-  /*
+  
   CASE_SINGLE_PIPELINE_JOB();
   CASE_MULTI_PIPELINE_JOBS();
-  CASE_BACKGROUND_JOBS();
   CASE_ERROR_CASES();  
   CASE_REDIRECTION_ERRORS();
-  */
-  CASE_ZOMBIE_KILLER_FAIL();
-  CASE_ZOMBIE_KILLER_SUCCESS();
+
   printf("JOB RUNNER TESTS COMPLETE\n");
 
   return 0;
@@ -118,7 +111,7 @@ void CASE_MULTI_PIPELINE_JOBS(){
   printf("\n\n");
 
   printf("Running a 3 stage pipeline with input and output redirection\n\n");
-  printf("TESTING cat infile.txt | grep 'never' | sort - press enter\n");
+  printf("TESTING cat infile.txt | grep 'never' | sort > outfile.txt - press enter\n");
   pipeline_job.num_stages = 3;
   //first stage
   pipeline_job.pipeline[0].argv[0] = "/bin/cat";
@@ -142,54 +135,6 @@ void CASE_MULTI_PIPELINE_JOBS(){
   run_job(&pipeline_job, NULL);
   printf("check outfile.txt\n");
 
-}
-
-
-void CASE_BACKGROUND_JOBS(){
-  JOB sleep_job;
-  //hard coding job struct
-  sleep_job.pipeline[0].argv[0] = "/bin/sleep";
-  sleep_job.pipeline[0].argv[1] = "5";
-  sleep_job.pipeline[0].argv[2] = NULL;
-  sleep_job.num_stages = 1;
-  sleep_job.outfile_path = NULL;
-  sleep_job.infile_path = NULL;
-  sleep_job.background = FALSE;
-  printf("BEGINNING BACKROUND TESTS\n");
-  printf("Running a simple command in the background\n\n");
-  printf("TESTING sleep 5 - press enter (not in background)\n");
-  run_job(&sleep_job, NULL);
-  getchar();
-  printf("TESTING sleep 5 &- press enter (in background)\n");
-  sleep_job.background = TRUE;
-  run_job(&sleep_job, NULL);
-  getchar();
-  
-  printf("\n\n");
-  printf("Running a pipeline in the background\n\n");
-
-  JOB pipeline_job;
-  pipeline_job.num_stages = 2;
-  pipeline_job.background = TRUE;
-
-  //first stage
-  pipeline_job.pipeline[0].argv[0] = "/bin/ls";
-  pipeline_job.pipeline[0].argv[1] = NULL;
-  pipeline_job.pipeline[0].argc = 1;
-
-  //second stage
-  pipeline_job.pipeline[1].argv[0] = "/bin/grep";
-  pipeline_job.pipeline[1].argv[1] = "infile.txt";
-  pipeline_job.pipeline[1].argv[2] = NULL;
-  pipeline_job.pipeline[1].argc = 2;
-
-  pipeline_job.infile_path = NULL;
-  pipeline_job.outfile_path = NULL;
-
-
-  printf("TESTING ls | grep infile.txt &\n");
-  run_job(&pipeline_job, NULL);
-  printf("\n\n");
 }
 
 
@@ -248,56 +193,4 @@ void CASE_REDIRECTION_ERRORS(){
   getchar();
   run_job(&midtermAns_job, NULL);
   printf("\n\n");
-}
-
-void CASE_ZOMBIE_KILLER_FAIL(){
-
-  printf("BEGINNING ZOMBIE CHILDREN TESTS WITHOUT SIGNAL HANDLING\n");
-
-  pid_t pid = fork();
-  if(pid < 0){
-    perror("fork failed");
-    exit(1);
-  }
-  if(pid == 0){
-    printf("\tchild simulating work\n");
-    sleep(3);
-    printf("\tchild exiting\n");
-    exit(0);
-  } else {
-    printf("\tparent waiting on child\n");
-    sleep(20);
-    printf("\tparent done waiting\n");
-  }
-
-}
-
-void CASE_ZOMBIE_KILLER_SUCCESS(){
-  struct sigaction sa;
-  sa.sa_handler = signal_child_handler; //in add_features.c
-  sigemptyset(&sa.sa_mask);        // Initialize an empty set *i got this from chatgpt it says we need it for predictability*
-
-  if (sigaction(SIGCHLD, &sa, NULL) == -1) { //SIGCHLD is child stopped or terminated
-    perror("sigaction");
-    return;
-  }
-  
-  printf("\n\nBEGINNING ZOMBIE CHILDREN TESTS WITH SIGNAL HANDLING\n");
-
-  pid_t pid = fork();
-  if(pid < 0){
-    perror("fork failed");
-    exit(1);
-  }
-  if(pid == 0){
-    printf("\tchild simulating work\n");
-    sleep(3);
-    printf("\tchild exiting\n");
-    exit(0);
-  } else {
-    printf("\tparent waiting on child\n");
-    sleep(20);
-    printf("\tparent done waiting\n");
-  }
-
 }
