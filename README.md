@@ -45,8 +45,7 @@ Above:
 |     |     |
 | --- | --- |
 | Quotes (' ' / " ") | Programs like \`awk\` and \`grep\` don't work with arguments enclosed in quotes. Instead of \`grep "#include"\`, use \`grep #include\`. Since the tokenizer treats each word separated by whitespace as a single token, unlike bash, this shell can't treat multiple words as a single token |
-| less | The \`less\` command will not behave as expected if the user doesn't press \`q\` to exit when reaching the (END) of the content |
-| echo | Running \`echo $PATH\` does not correctly expand and print the environment variable values. This behavior is the same for all environment variables |
+| Environment  variable expansion | The shell does not support environment variable expansion. For example,  \`echo $PATH\`  will not expand "PATH". |
 
 
 ## References

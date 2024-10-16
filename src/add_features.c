@@ -183,7 +183,7 @@ static void extract_path_from_envp(char *envp[], char paths[MAX_NUM_PATHS][PATH_
  */
 static void parse_path_var(char *to_path, char paths[MAX_NUM_PATHS][PATH_MAX_SIZE]){
   int number_of_paths = 0;
-  char *default_path = "/bin";
+  char *default_path = "/bin/";
   string_copy(default_path, paths[number_of_paths++],'\0');
   
   if(to_path == NULL){

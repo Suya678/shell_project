@@ -32,7 +32,6 @@ void run_job(JOB *job, char *envp[]) {
   pid_t pid = fork();
 
   if(pid == 0) {  
-    signal(SIGINT, SIG_DFL); // Reset the sig ignore signal so children can still be interrupted
     
     if(job->num_stages > 1){
       handle_multi_pipeline_job(job, envp);
@@ -226,7 +225,8 @@ static void run_command(Command *command, int input_fd, int output_fd, int fd_cl
   
   if(pid == 0)
     {
-   
+      signal(SIGINT, SIG_DFL); // Reset the sig ignore signal so children can still be interrupted
+
    if(input_fd != FD_STD_INP) {
       redirect_fd(FD_STD_INP,input_fd);
     }

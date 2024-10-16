@@ -7,8 +7,7 @@
 |     |     |
 | --- | --- |
 | Quotes (' ' / " ") | Programs like \`awk\` and \`grep\` don't work with arguments enclosed in quotes. Instead of \`grep "#include"\`, use \`grep #include\`. Since the tokenizer treats each word separated by whitespace as a single token, unlike bash, this shell can't treat multiple words as a single token |
-| less | The \`less\` command will not behave as expected if the user doesn't press \`q\` to exit when reaching the (END) of the content |
-| echo | Running \`echo $PATH\` does not correctly expand and print the environment variable values. This behavior is the same for all environment variables |
+| Environment  variable expansion | The shell does not support environment variable expansion. For example,  \`echo $PATH\`  will not expand "PATH". |
 
 ## Test Cases
 
@@ -67,3 +66,34 @@
 | One stage pipeline without a path | 'ls' | ls is executed | Same as expected | Pass |
 | Multi-stage pipeline without a command | ' ls \| sort \| wc' | ls sends its output to sort which sends it to wc who outputs it | Same as expected | Pass |
 | Multi pipeline with providing a path for some commands and not for some | 'ls \| /bin/sort \| /bin/wc' | ls sends its output to sort which sends it to wc who outputs it | Same as expected | Pass |
+
+## Proper Background Processing
+Here, proper background processing refers to not having zombie/defunct processes when a particular process is ran in the background using '&'.
+
+#### First we create two terminals
+- One for running the command, which will run under our shell
+- Second  one for running ps u to test if the process becomes a zombie, will be run under Bash.
+
+The shell's background processing is correct if after the background process finishes execution, it does not become a zombie and is removed the process table in the ps u command. 
+
+## In the first terminal
+```
+//First run a background operations in the first terminal
+QuantumShell$$: sleep 20 &
+
+//Then, before 20 seconds run another command ls
+QuantumShell$$: ls
+README.md  build  final_tst.md  headers  makefile  src  tests  week-3-4
+```
+## In the second terminal
+```
+##Just after executing sleep 20, we do this in the second terminal
+
+dsuya637@dsuya637:~$ ps u
+dsuya637  294107  0.0  0.0   2792  1016 pts/17   S+   18:19   0:00 /bin/sleep 20
+
+//After waiting for 20 we executee
+dsuya637@dsuya637:~$ ps u
+```
+The sleep process is no longer on the table, therefore, background processing works.
+

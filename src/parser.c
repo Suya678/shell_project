@@ -23,7 +23,7 @@ static bool is_special_symbol(char *str);
  * 
  * @param usr_inp Pointer to the USR_INP structure holding the input buffer
  * 
- * @return Does not return anythin but stores the processed user input and tokens in the usr_inp structure.
+ * @return Does not return anything but stores the processed user input and tokens in the usr_inp structure.
  */
 
 void get_usr_input(USR_INP *usr_inp) {
@@ -60,7 +60,7 @@ void get_usr_input(USR_INP *usr_inp) {
 static bool validate_input_and_null_terminate(USR_INP *usr_inp, size_t count) {
     char error_msg[] = "Error: The input was longer than 256 characters\n";
 
-    if (usr_inp->usr_input[count - 1] != '\n' && count == 256) { //If input is less than 256 that means user pressed CTRL D which is valid
+    if (usr_inp->usr_input[count - 1] != '\n' && count == 256) { //If input is less than 256 that means user pressed CTRL D which is a valid input
         print_string(error_msg);
         flush_std_input_buffer();
         return FALSE;
@@ -70,7 +70,7 @@ static bool validate_input_and_null_terminate(USR_INP *usr_inp, size_t count) {
     // Null-terminate the input string
     if (usr_inp->usr_input[count - 1] != '\n') { // Last character might not be '/n' if the user pressed CTRL D
         usr_inp->usr_input[count] = '\0';
-        print_string("\n");                    // Since the user didnt enter a newline
+        print_string("\n");                    // Since the user didn't enter a newline
     } else {
         usr_inp->usr_input[count - 1] = '\0';
     }
@@ -119,10 +119,10 @@ static void flush_std_input_buffer() {
 
 
 /**
- * @brief decomposes a commandline string into the separate words/tokens removing the
+ * @brief decomposes a command line  string into the separate words/tokens removing the
  * whitespace. It stores the tokens in an array and tracks how many tokens were found.
  * 
- * curr is initialized to pint to the start of the string to_decompose and is iterated until
+ * curr is initialized to point to the start of the string to_decompose and is iterated until
  * '\0', looking for words. It will also skip over leading whitespaces in the string. If curr reaches 
  * the null terminator it breaks out indicating no more tokens.
  * The curr position after skipping whitespace is saved in the tokens array as the start of a new token.
@@ -268,9 +268,9 @@ static void read_pipeline(JOB *job, bool *valid_input, unsigned int *token_count
  * If valid, it recursively calls read_pipeline to continue parsing the command stages in the pipeline.
  * If the token is invalid, it marks the input as invalid.
  * 
- * @param *job pointer to the JOB structure containing the command pipeline.
- * @param *valid_input pointer to a boolean indicating whether the input is valid.
- * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * @param job pointer to the JOB structure containing the command pipeline.
+ * @param valid_input pointer to a boolean indicating whether the input is valid.
+ * @param token_counter pointer to an unsigned integer tracking the current token position.
  * 
  * @return This function does not return any value but will modified the passed in values
  */
@@ -295,9 +295,9 @@ static void handle_pipe(JOB *job, bool *valid_input, unsigned int *token_counter
  * The function sets the background flag in the job structure and increments the token 
  * counter. If additional tokens are present after `&`, it marks the input as invalid.
  * 
- * @param *job pointer to the JOB structure containing the background flag.
- * @param *valid_input pointer to a boolean indicating whether the input is valid.
- * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * @param job pointer to the JOB structure containing the background flag.
+ * @param valid_input pointer to a boolean indicating whether the input is valid.
+ * @param token_counter pointer to an unsigned integer tracking the current token position.
  * 
  * @return This function does not return any value but may modify valid input parameter
  */
@@ -321,9 +321,9 @@ static void handle_background_symbol(JOB *job, bool *valid_input, unsigned int *
  * If valid, it updates the job structure. It also verifies that no tokens
  * other than "&" are next.
  *  
- * @param *job pointer to the JOB structure containing the output file path.
- * @param *valid_input pointer to a boolean indicating whether the input is valid.
- * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * @param job pointer to the JOB structure containing the output file path.
+ * @param valid_input pointer to a boolean indicating whether the input is valid.
+ * @param token_counter pointer to an unsigned integer tracking the current token position.
  * 
  * @return This function does not return any value but will modify the passed in parameters.
  */
@@ -366,9 +366,9 @@ static void handle_output_redirection(JOB *job, bool *valid_input, unsigned int 
  * It updates the job structure and ensures that the next token 
  * does not start a new pipeline or contain special symbols, except for '&' or '<'.
  * 
- * @param *job pointer to the JOB structure containing the input file path.
- * @param *valid_input pointer to a boolean indicating whether the input is valid.
- * @param *token_counter pointer to an unsigned integer tracking the current token position.
+ * @param job pointer to the JOB structure containing the input file path.
+ * @param valid_input pointer to a boolean indicating whether the input is valid.
+ * @param token_counter pointer to an unsigned integer tracking the current token position.
  * 
  * @return This function does not return any value.
  */
